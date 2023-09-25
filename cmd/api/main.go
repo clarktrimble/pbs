@@ -4,16 +4,18 @@ import (
 	"context"
 	"sync"
 	"time"
+	"xform/photosvc"
 
 	"github.com/clarktrimble/delish"
 	"github.com/clarktrimble/hondo"
 
-	"github.com/clarktrimble/delish/graceful"
-	"github.com/clarktrimble/delish/mid"
-
-	"github.com/clarktrimble/delish/examples/api/demosvc"
 	"github.com/clarktrimble/delish/examples/api/minlog"
 	"github.com/clarktrimble/delish/examples/api/minroute"
+	"github.com/clarktrimble/delish/graceful"
+	"github.com/clarktrimble/delish/mid"
+	//"github.com/clarktrimble/delish/cmd/api/demosvc"
+	//"github.com/clarktrimble/delish/cmd/api/minlog"
+	//"github.com/clarktrimble/delish/cmd/api/minroute"
 )
 
 var (
@@ -42,6 +44,9 @@ func main() {
 
 	// create logger and initialize graceful
 
+	//lgr := &sabot.Sabot{
+	//Writer: os.Stdout,
+	//}
 	lgr := &minlog.MinLog{}
 	ctx := lgr.WithFields(context.Background(), "run_id", hondo.Rand(7))
 
@@ -63,7 +68,7 @@ func main() {
 
 	// or via service layer
 
-	demosvc.AddRoute(svr, rtr)
+	photosvc.NewAndReg(svr, rtr)
 
 	// delicious!
 
