@@ -38,7 +38,8 @@ func main() {
 		Version: version,
 		Server: &delish.Config{
 			Port:    8088,
-			Timeout: 10 * time.Second,
+			Timeout: 10 * time.Minute,
+			// Todo: fix delish/graceful WithTimeout is bug!!!?
 		},
 	}
 
@@ -74,4 +75,6 @@ func main() {
 
 	svr.Start(ctx, &wg)
 	graceful.Wait(ctx)
+
+	// Todo: service shutdown with errors or sommat?  noooooo
 }

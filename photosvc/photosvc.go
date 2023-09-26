@@ -1,10 +1,12 @@
 package photosvc
 
 import (
+	"encoding/json"
 	"net/http"
 	"xform/entity"
 
 	"github.com/clarktrimble/delish"
+	"github.com/pkg/errors"
 )
 
 func NewAndReg(svr *delish.Server, rtr Router) (svc *photoSvc) {
@@ -51,6 +53,15 @@ func (svc *photoSvc) addPhotos(writer http.ResponseWriter, request *http.Request
 		Logger: svc.Server.Logger,
 	}
 
-	// Todo: xlate photos for swipe front-end
-	rp.WriteObjects(ctx, map[string]any{"photos": svc.photos})
+	photos := []entity.Photo{}
+	err := json.NewDecoder(request.Body).Decode(&photos)
+	if err != nil {
+		err = errors.Wrapf(err, "failed decode")
+		rp.NotOk(ctx, 500, err)
+		return
+	}
+
+	svc.photos = photos
+	// Todo: add Ok to responder
+	rp.Write(ctx, []byte(`{"status":"ok"}`))
 }
