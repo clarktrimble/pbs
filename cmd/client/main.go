@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"xform/moresvc"
+	_ "xform/resize" // Todo: wahh?
 	"xform/takeout"
 
 	"github.com/clarktrimble/delish/examples/api/minlog"
@@ -12,8 +13,6 @@ import (
 )
 
 var (
-	//lat     = 58.38
-	//lon     = 25.73
 	baseUri = "http://localhost:8088"
 )
 
@@ -30,7 +29,6 @@ func main() {
 	}
 
 	ctx := context.Background()
-	//lgr := &minLog{}
 	lgr := &minlog.MinLog{}
 
 	photos, err := takeout.Find("/home/trimble/takeout01")
@@ -43,13 +41,10 @@ func main() {
 	client.Use(&logrt.LogRt{Logger: lgr})
 
 	photoSvc := &moresvc.Svc{Client: client}
-	//hourly, err := weatherSvc.GetHourly(ctx, lat, lon)
 	err = photoSvc.PostPhotos(ctx, photos)
 	if err != nil {
 		//lgr.Error(ctx, "failed to get forcast data", err)
 		//os.Exit(1)
 		panic(err)
 	}
-
-	//hourly.Print()
 }

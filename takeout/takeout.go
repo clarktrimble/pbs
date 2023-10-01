@@ -3,6 +3,8 @@ package takeout
 
 import (
 	"encoding/json"
+	"fmt"
+	"image"
 	"io/fs"
 	"os"
 	pth "path"
@@ -114,6 +116,24 @@ func decode(dir, name string) (photo entity.Photo, err error) {
 			Alt: to.Geo.Alt,
 		},
 	}
+
+	// Todo: helper ??
+
+	fmt.Printf(">>> decoding .. %s\n", photo.Path)
+	rdr, err := os.Open(photo.Path)
+	if err != nil {
+		err = errors.Wrapf(err, "failed to open reader")
+		return
+	}
+	defer rdr.Close()
+
+	cfg, _, err := image.DecodeConfig(rdr)
+	if err != nil {
+		err = errors.Wrapf(err, "failed to decode config")
+		return
+	}
+	photo.Width = cfg.Width
+	photo.Height = cfg.Height
 
 	return
 }

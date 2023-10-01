@@ -13,9 +13,6 @@ import (
 	"github.com/clarktrimble/delish/examples/api/minroute"
 	"github.com/clarktrimble/delish/graceful"
 	"github.com/clarktrimble/delish/mid"
-	//"github.com/clarktrimble/delish/cmd/api/demosvc"
-	//"github.com/clarktrimble/delish/cmd/api/minlog"
-	//"github.com/clarktrimble/delish/cmd/api/minroute"
 )
 
 var (
@@ -38,7 +35,7 @@ func main() {
 		Version: version,
 		Server: &delish.Config{
 			Port:    8088,
-			Timeout: 10 * time.Minute,
+			Timeout: 999 * time.Minute,
 			// Todo: fix delish/graceful WithTimeout is bug!!!?
 		},
 	}

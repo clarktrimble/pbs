@@ -29,7 +29,7 @@ func (sizes Sizes) Bulk(tmpDir string, photos []entity.Photo) (err error) {
 		if err != nil {
 			return
 		}
-		fmt.Printf(">>> inner: %#v\n", photos[i])
+		//fmt.Printf(">>> inner: %#v\n", photos[i])
 	}
 
 	return
@@ -44,6 +44,7 @@ func (sizes Sizes) Resize(tmpDir string, photo *entity.Photo) (err error) {
 	//bounds := img.Bounds()
 	//photo.Width = bounds.Dx()
 	//photo.Height = bounds.Dy()
+	fmt.Printf(">>> decoding ... %s\n", photo.Path)
 	rdr, err := os.Open(photo.Path)
 	if err != nil {
 		err = errors.Wrapf(err, "failed to open reader")

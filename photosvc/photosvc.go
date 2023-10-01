@@ -2,6 +2,7 @@ package photosvc
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"xform/entity"
 
@@ -33,7 +34,23 @@ type photoSvc struct {
 	photos []entity.Photo
 }
 
+// "largeURL": "http://tartu/photo/resized/PXL_20230707_101846985-4.png",
+// "thumbnailURL": "http://tartu/photo/resized/PXL_20230707_101846985-16.png",
+// "width": 3072,
+// "height": 4080
+// Todo: rename pkg swipesvc
+type image struct {
+	Large  string `json:"largeURL"`
+	Thumb  string `json:"thumbnailURL"`
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+}
+
 func (svc *photoSvc) getPhotos(writer http.ResponseWriter, request *http.Request) {
+
+	// Todo: bloga?
+	writer.Header().Add("Access-Control-Allow-Origin", "*")
+	//hdr.Add("Access-Control-Allow-Origin", "*")
 
 	ctx := request.Context()
 	rp := &delish.Respond{
@@ -42,7 +59,18 @@ func (svc *photoSvc) getPhotos(writer http.ResponseWriter, request *http.Request
 	}
 
 	// Todo: xlate photos for swipe front-end
-	rp.WriteObjects(ctx, map[string]any{"photos": svc.photos})
+
+	images := []image{}
+	for _, photo := range svc.photos {
+		images = append(images, image{
+			Large:  fmt.Sprintf("http://tartu/photo/resized/%s-4.png", photo.Name),
+			Thumb:  fmt.Sprintf("http://tartu/photo/resized/%s-16.png", photo.Name),
+			Width:  photo.Width,
+			Height: photo.Height,
+		})
+	}
+
+	rp.WriteObjects(ctx, map[string]any{"images": images})
 }
 
 func (svc *photoSvc) addPhotos(writer http.ResponseWriter, request *http.Request) {
