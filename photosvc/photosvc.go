@@ -2,7 +2,6 @@ package photosvc
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"xform/entity"
 
@@ -10,11 +9,19 @@ import (
 	"github.com/pkg/errors"
 )
 
-func NewAndReg(svr *delish.Server, rtr Router) (svc *photoSvc) {
+type PhotoSvc struct {
+	Server *delish.Server
+	Repo   Repo
+	//photos []entity.Photo
+}
 
-	svc = &photoSvc{
-		Server: svr,
-	}
+// Todo: rename
+// func NewAndReg(svr *delish.Server, rtr Router) (svc *PhotoSvc) {
+func (svc *PhotoSvc) Register(rtr Router) {
+
+	//svc = &PhotoSvc{
+	//Server: svr,
+	//}
 
 	rtr.Set("GET", "/photos", svc.getPhotos)
 	rtr.Set("POST", "/photos", svc.addPhotos)
@@ -29,11 +36,6 @@ func NewAndReg(svr *delish.Server, rtr Router) (svc *photoSvc) {
 
 // unexported
 
-type photoSvc struct {
-	Server *delish.Server
-	photos []entity.Photo
-}
-
 // "largeURL": "http://tartu/photo/resized/PXL_20230707_101846985-4.png",
 // "thumbnailURL": "http://tartu/photo/resized/PXL_20230707_101846985-16.png",
 // "width": 3072,
@@ -46,7 +48,7 @@ type image struct {
 	Height int    `json:"height"`
 }
 
-func (svc *photoSvc) getPhotos(writer http.ResponseWriter, request *http.Request) {
+func (svc *PhotoSvc) getPhotos(writer http.ResponseWriter, request *http.Request) {
 
 	// Todo: bloga?
 	writer.Header().Add("Access-Control-Allow-Origin", "*")
@@ -59,21 +61,30 @@ func (svc *photoSvc) getPhotos(writer http.ResponseWriter, request *http.Request
 	}
 
 	// Todo: xlate photos for swipe front-end
+	/*
+		images := []image{}
+		for _, photo := range svc.photos {
+			images = append(images, image{
+				Large:  fmt.Sprintf("http://tartu/photo/resized/%s-4.png", photo.Name),
+				Thumb:  fmt.Sprintf("http://tartu/photo/resized/%s-16.png", photo.Name),
+				Width:  photo.Width,
+				Height: photo.Height,
+			})
+		}
 
-	images := []image{}
-	for _, photo := range svc.photos {
-		images = append(images, image{
-			Large:  fmt.Sprintf("http://tartu/photo/resized/%s-4.png", photo.Name),
-			Thumb:  fmt.Sprintf("http://tartu/photo/resized/%s-16.png", photo.Name),
-			Width:  photo.Width,
-			Height: photo.Height,
-		})
+		rp.WriteObjects(ctx, map[string]any{"images": images})
+	*/
+
+	photos, err := svc.Repo.GetPhotos(ctx)
+	if err != nil {
+		panic(err)
 	}
 
-	rp.WriteObjects(ctx, map[string]any{"images": images})
+	rp.WriteObjects(ctx, map[string]any{"photos": photos})
+	//rp.WriteObjects(ctx, map[string]any{"photos": svc.photos})
 }
 
-func (svc *photoSvc) addPhotos(writer http.ResponseWriter, request *http.Request) {
+func (svc *PhotoSvc) addPhotos(writer http.ResponseWriter, request *http.Request) {
 
 	ctx := request.Context()
 	rp := &delish.Respond{
@@ -81,7 +92,8 @@ func (svc *photoSvc) addPhotos(writer http.ResponseWriter, request *http.Request
 		Logger: svc.Server.Logger,
 	}
 
-	photos := []entity.Photo{}
+	//photos := []entity.Photo{}
+	photos := entity.Photos{}
 	err := json.NewDecoder(request.Body).Decode(&photos)
 	if err != nil {
 		err = errors.Wrapf(err, "failed decode")
@@ -89,7 +101,14 @@ func (svc *photoSvc) addPhotos(writer http.ResponseWriter, request *http.Request
 		return
 	}
 
-	svc.photos = photos
+	//svc.photos = photos
+	err = svc.Repo.UpsertPhotos(ctx, photos)
+	if err != nil {
+		err = errors.Wrapf(err, "repo failed to create photos")
+		rp.NotOk(ctx, 500, err)
+		return
+	}
+
 	// Todo: add Ok to responder
 	rp.Write(ctx, []byte(`{"status":"ok"}`))
 }

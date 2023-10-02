@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 	"time"
+	"xform/bolt"
 	"xform/photosvc"
 
 	"github.com/clarktrimble/delish"
@@ -25,11 +26,9 @@ type Config struct {
 	Server  *delish.Config `json:"server"`
 }
 
-// Todo: demo another goroutine
-
 func main() {
 
-	// usually load config with envconfig, but literal for demo
+	// Todo: load with envconfig helper
 
 	cfg := &Config{
 		Version: version,
@@ -42,9 +41,6 @@ func main() {
 
 	// create logger and initialize graceful
 
-	//lgr := &sabot.Sabot{
-	//Writer: os.Stdout,
-	//}
 	lgr := &minlog.MinLog{}
 	ctx := lgr.WithFields(context.Background(), "run_id", hondo.Rand(7))
 
@@ -60,13 +56,23 @@ func main() {
 
 	svr := cfg.Server.New(handler, lgr)
 
-	// register route directly
+	// setup photo service layer
 
+	blt, err := bolt.New("photo.db", "photo")
+	if err != nil {
+		panic(err)
+	}
+	defer blt.Close()
+
+	photoSvc := &photosvc.PhotoSvc{
+		Server: svr,
+		Repo:   blt,
+	}
+
+	// register routes
+
+	photoSvc.Register(rtr)
 	rtr.Set("GET", "/config", svr.ObjHandler("config", cfg))
-
-	// or via service layer
-
-	photosvc.NewAndReg(svr, rtr)
 
 	// delicious!
 

@@ -9,5 +9,7 @@ require (
 	github.com/clarktrimble/hondo v0.0.1 // indirect
 	github.com/clarktrimble/sabot v0.0.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	go.etcd.io/bbolt v1.3.7 // indirect
 	golang.org/x/image v0.0.0-20190703141733-d6a02ce849c9 // indirect
+	golang.org/x/sys v0.9.0 // indirect
 )

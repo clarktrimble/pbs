@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"xform/moresvc"
 	_ "xform/resize" // Todo: wahh?
 	"xform/takeout"
@@ -14,6 +15,8 @@ import (
 
 var (
 	baseUri = "http://localhost:8088"
+	path    = "/home/trimble/takeout01"
+	dryRun  = false
 )
 
 type Config struct {
@@ -31,10 +34,16 @@ func main() {
 	ctx := context.Background()
 	lgr := &minlog.MinLog{}
 
-	photos, err := takeout.Find("/home/trimble/takeout01")
+	photos, err := takeout.Find(path)
 	if err != nil {
 		panic(err)
 	}
+
+	if dryRun {
+		fmt.Printf("\nfound:\n\n%s\n\n", photos)
+		return
+	}
+	fmt.Printf("\nposting %d photos\n\n", len(photos))
 
 	client := cfg.Client.New()
 	client.Use(&statusrt.StatusRt{})

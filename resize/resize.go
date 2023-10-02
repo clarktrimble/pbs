@@ -2,17 +2,7 @@
 package resize
 
 import (
-	"fmt"
-	"image"
-	"os"
-	"path"
-
 	"xform/entity"
-
-	"github.com/anthonynsimon/bild/effect"
-	"github.com/anthonynsimon/bild/imgio"
-	"github.com/anthonynsimon/bild/transform"
-	"github.com/pkg/errors"
 )
 
 type Size struct {
@@ -44,50 +34,54 @@ func (sizes Sizes) Resize(tmpDir string, photo *entity.Photo) (err error) {
 	//bounds := img.Bounds()
 	//photo.Width = bounds.Dx()
 	//photo.Height = bounds.Dy()
-	fmt.Printf(">>> decoding ... %s\n", photo.Path)
-	rdr, err := os.Open(photo.Path)
-	if err != nil {
-		err = errors.Wrapf(err, "failed to open reader")
-		return
-	}
-	defer rdr.Close()
+	/*
+		fmt.Printf(">>> decoding ... %s\n", photo.Path)
+		rdr, err := os.Open(photo.Path)
+		if err != nil {
+			err = errors.Wrapf(err, "failed to open reader")
+			return
+		}
+		defer rdr.Close()
 
-	cfg, _, err := image.DecodeConfig(rdr)
-	if err != nil {
-		err = errors.Wrapf(err, "failed to decode config")
-		return
-	}
-	photo.Width = cfg.Width
-	photo.Height = cfg.Height
+		cfg, _, err := image.DecodeConfig(rdr)
+		if err != nil {
+			err = errors.Wrapf(err, "failed to decode config")
+			return
+		}
+		photo.Width = cfg.Width
+		photo.Height = cfg.Height
+	*/
 
 	if tmpDir == "no save" {
 		return
 	}
-	img, err := imgio.Open(photo.Path)
-	if err != nil {
-		err = errors.Wrapf(err, "failed to open image")
-		return
-	}
-
-	for _, size := range sizes {
-
-		sized := transform.Resize(img, photo.Width/size.Scale, photo.Height/size.Scale, transform.CatmullRom)
-
-		var gs string
-		if size.Grey {
-			gs = "-gs"
-			sized = effect.Grayscale(img)
-		}
-
-		out := path.Join(tmpDir, fmt.Sprintf("%s-%d%s.png", photo.Name, size.Scale, gs))
-
-		err = imgio.Save(out, sized, imgio.PNGEncoder())
+	/*
+		img, err := imgio.Open(photo.Path)
 		if err != nil {
-			err = errors.Wrapf(err, "failed to save image")
+			err = errors.Wrapf(err, "failed to open image")
 			return
 		}
-		fmt.Printf(".")
-	}
+
+			for _, size := range sizes {
+
+				sized := transform.Resize(img, photo.Width/size.Scale, photo.Height/size.Scale, transform.CatmullRom)
+
+				var gs string
+				if size.Grey {
+					gs = "-gs"
+					sized = effect.Grayscale(img)
+				}
+
+				out := path.Join(tmpDir, fmt.Sprintf("%s-%d%s.png", photo.Name, size.Scale, gs))
+
+				err = imgio.Save(out, sized, imgio.PNGEncoder())
+				if err != nil {
+					err = errors.Wrapf(err, "failed to save image")
+					return
+				}
+				fmt.Printf(".")
+			}
+	*/
 
 	return
 }

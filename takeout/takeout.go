@@ -4,7 +4,6 @@ package takeout
 import (
 	"encoding/json"
 	"fmt"
-	"image"
 	"io/fs"
 	"os"
 	pth "path"
@@ -14,6 +13,7 @@ import (
 
 	"xform/entity"
 
+	"github.com/clarktrimble/hondo"
 	"github.com/pkg/errors"
 )
 
@@ -27,19 +27,22 @@ type Taken struct {
 	Epoch string `json:"timestamp"`
 }
 
+// Photo as seen in Takeout files
 type Photo struct {
 	Title string `json:"title"`
 	Taken Taken  `json:"photoTakenTime"`
 	Geo   Geo    `json:"geoData"`
 }
 
-func Find(root string) (photos []entity.Photo, err error) {
+// Find photos given a root path
+func Find(root string) (photos entity.Photos, err error) {
 
 	paths, err := findJson(root)
 	if err != nil {
 		return
 	}
 
+	photos = entity.Photos{}
 	for _, path := range paths {
 
 		var photo entity.Photo
@@ -106,7 +109,10 @@ func decode(dir, name string) (photo entity.Photo, err error) {
 
 	split := strings.Split(to.Title, ".")
 
+	// Todo: yeah split this out somewheres??
+
 	photo = entity.Photo{
+		Id:      hondo.Rand(7),
 		Name:    split[0],
 		Path:    pth.Join(dir, to.Title),
 		TakenAt: time.Unix(epoch, 0).UTC(),
@@ -127,13 +133,15 @@ func decode(dir, name string) (photo entity.Photo, err error) {
 	}
 	defer rdr.Close()
 
-	cfg, _, err := image.DecodeConfig(rdr)
-	if err != nil {
-		err = errors.Wrapf(err, "failed to decode config")
-		return
-	}
-	photo.Width = cfg.Width
-	photo.Height = cfg.Height
+	/*
+		cfg, _, err := image.DecodeConfig(rdr)
+		if err != nil {
+			err = errors.Wrapf(err, "failed to decode config")
+			return
+		}
+		photo.Width = cfg.Width
+		photo.Height = cfg.Height
+	*/
 
 	return
 }
