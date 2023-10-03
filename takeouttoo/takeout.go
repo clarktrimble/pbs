@@ -38,6 +38,8 @@ type Photo struct {
 // func FromFiles(jsonPath, resizePath string, sizes resize.Sizes) (photos entity.Photos, err error) {
 func FromFiles(jsonPath string) (photos entity.Photos, err error) {
 
+	fmt.Printf(">>> %s\n", jsonPath)
+
 	paths, err := findJson(jsonPath)
 	if err != nil {
 		return

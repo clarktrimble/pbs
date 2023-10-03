@@ -1,21 +1,30 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	"xform/resize"
 	"xform/takeouttoo"
+
+	"github.com/clarktrimble/launch"
 )
+
+type Config struct {
+	Version     string `json:"version" ignored:"true"`
+	TakeoutPath string `json:"takeout_path" desc:"path to takeout jpg's and json's" required:"true"`
+	ResizedPath string `json:"resized_path" desc:"path to resized png's" required:"true"`
+}
 
 func main() {
 
-	//sizes := resize.Sizes{
-	//{Scale: 4},
-	//{Scale: 16},
-	//}
+	const (
+		cfgPrefix string = "pbl"
+	)
 	var (
-		src   = "/home/trimble/takeout01"
-		dst   = "/home/trimble/takeout01/resized"
+		version string
+		//src     = "/home/trimble/takeout01"
+		//dst     = "/home/trimble/takeout01/resized"
 		sizes = resize.Sizes{
 			{Name: "large", Scale: 4},
 			{Name: "thumb", Scale: 16},
@@ -23,14 +32,20 @@ func main() {
 		}
 	)
 
+	cfg := &Config{Version: version}
+	launch.Load(cfg, cfgPrefix)
+
 	//photos, err := takeouttoo.Find("/home/trimble/takeout01")
 	//func FromFiles(jsonPath, resizePath string, sizes resize.Sizes) (photos entity.Photos, err error) {
-	photos, err := takeouttoo.FromFiles(src)
-	if err != nil {
-		panic(err)
-	}
 
-	err = resize.AddResize(photos, dst, sizes)
+	fmt.Printf(">>> %#v\n", cfg)
+	photos, err := takeouttoo.FromFiles(cfg.TakeoutPath)
+	if err != nil {
+		launch.Check(context.Background(), nil, err)
+	}
+	return
+
+	err = resize.AddResize(photos, cfg.ResizedPath, sizes)
 
 	fmt.Printf("found %d photos\n", len(photos))
 	//	fmt.Printf(">>> %#v\n", photos[0])
