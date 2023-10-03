@@ -29,7 +29,7 @@ func main() {
 	//panic(err)
 	//}
 	tmpDir := "no save"
-	err = sizes.Bulk(tmpDir, photos)
+	err = sizes.BulkResize(tmpDir, photos)
 	if err != nil {
 		panic(err)
 	}

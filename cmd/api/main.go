@@ -8,12 +8,11 @@ import (
 	"xform/photosvc"
 
 	"github.com/clarktrimble/delish"
-	"github.com/clarktrimble/hondo"
-
 	"github.com/clarktrimble/delish/examples/api/minlog"
 	"github.com/clarktrimble/delish/examples/api/minroute"
 	"github.com/clarktrimble/delish/graceful"
 	"github.com/clarktrimble/delish/mid"
+	"github.com/clarktrimble/hondo"
 )
 
 var (

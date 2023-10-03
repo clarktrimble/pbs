@@ -15,16 +15,16 @@ type Geo struct {
 }
 
 type Image struct {
-	Scale  int
+	Scale  int // Todo: size name ??
 	Width  int
 	Height int
-	Url    string
+	Path   string
 }
 
 type Photo struct {
 	Id      string
 	Name    string
-	Path    string // Todo: path is not entity?
+	Path    string // Todo: path is not part of entity?
 	TakenAt time.Time
 	Geo     Geo
 	Images  map[string]Image
@@ -57,7 +57,24 @@ func (photos Photos) String() string {
 	return string(data)
 }
 
+// Todo: new file plz
+
 type Book struct {
-	Id    string
-	Index map[string]string
+	Id       string
+	Featured map[string]bool
+}
+
+func DecodeBook(data []byte) (book Book, err error) {
+
+	book = Book{}
+	err = json.Unmarshal(data, &book)
+	err = errors.Wrapf(err, "failed to decode book")
+	return
+}
+
+func (book Book) Encode() (data []byte, err error) {
+
+	data, err = json.Marshal(book)
+	err = errors.Wrapf(err, "somehow failed to encode book")
+	return
 }

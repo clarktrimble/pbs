@@ -1,0 +1,7 @@
+
+## trying out "photobook" api cf ..
+
+ 1631  curl localhost:8088/book -d '{"id": "testo"}'
+ 1632  curl localhost:8088/photobook -d '{"book_id": "testo"}' -XGET
+ 1633  curl localhost:8088/featured -d '{"book_id": "testo","photo_id": "9K4oMUT", "featured":true}'
+ 1634  curl localhost:8088/photobook -d '{"book_id": "testo"}' -XGET
