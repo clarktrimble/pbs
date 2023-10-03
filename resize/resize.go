@@ -3,6 +3,8 @@ package resize
 
 import (
 	"fmt"
+	"image"
+	"os"
 	"path"
 	"xform/entity"
 
@@ -65,6 +67,62 @@ func (sizes Sizes) Resize(dst string, photo entity.Photo) (err error) {
 		}
 		fmt.Printf(".")
 	}
+
+	return
+}
+
+var (
+	baseUrl = "http://tartu/photo/resized"
+	suffix  = "png"
+)
+
+func AddResize(photos entity.Photos, resizePath string, sizes Sizes) (err error) {
+
+	for i, photo := range photos {
+
+		images := map[string]entity.Image{}
+		for _, size := range sizes {
+
+			var wd, ht int
+
+			filename := fmt.Sprintf("%s-%s.%s", photo.Name, size.Name, suffix)
+			url := fmt.Sprintf("%s/%s", baseUrl, filename)
+			path := fmt.Sprintf("%s/%s", resizePath, filename)
+			wd, ht, err = getSize(path)
+			if err != nil {
+				return
+			}
+
+			images[size.Name] = entity.Image{
+				Width:  wd,
+				Height: ht,
+				Path:   url, // Todo:!
+			}
+		}
+
+		photos[i].Images = images
+	}
+
+	return
+}
+
+func getSize(imagePath string) (wd, ht int, err error) {
+
+	rdr, err := os.Open(imagePath)
+	if err != nil {
+		err = errors.Wrapf(err, "failed to open image")
+		return
+	}
+	defer rdr.Close()
+
+	cfg, _, err := image.DecodeConfig(rdr)
+	if err != nil {
+		err = errors.Wrapf(err, "failed to decode config")
+		return
+	}
+
+	wd = cfg.Width
+	ht = cfg.Height
 
 	return
 }

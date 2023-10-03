@@ -4,7 +4,6 @@ package takeouttoo
 import (
 	"encoding/json"
 	"fmt"
-	"image"
 	"io/fs"
 	"os"
 	pth "path"
@@ -13,7 +12,6 @@ import (
 	"time"
 
 	"xform/entity"
-	"xform/resize"
 
 	"github.com/clarktrimble/hondo"
 	"github.com/pkg/errors"
@@ -160,6 +158,7 @@ func decode(dir, name string) (photo entity.Photo, err error) {
 
 // Todo: move below to resize pls
 
+/*
 var (
 	baseUrl = "http://tartu/photo/resized"
 	suffix  = "png"
@@ -215,6 +214,7 @@ func getSize(imagePath string) (wd, ht int, err error) {
 
 	return
 }
+*/
 
 /*
 func ParseMeta(dirPath string) (photos []entity.Photo, err error) {

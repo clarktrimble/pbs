@@ -30,7 +30,7 @@ func main() {
 		panic(err)
 	}
 
-	err = takeouttoo.AddResize(photos, dst, sizes)
+	err = resize.AddResize(photos, dst, sizes)
 
 	fmt.Printf("found %d photos\n", len(photos))
 	//	fmt.Printf(">>> %#v\n", photos[0])
