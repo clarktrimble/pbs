@@ -100,7 +100,7 @@ func findJson(root, filter string) (paths []string, err error) {
 	// Todo: maybe walk is overkill here??
 
 	paths = []string{}
-	err = fs.WalkDir(os.DirFS(root), ".", func(path string, entry fs.DirEntry, err error) error {
+	err = fs.WalkDir(os.DirFS(root), ".", func(path string, entry fs.DirEntry, inerr error) error {
 
 		// Todo: factor this and name/path for resize plz
 		// Todo: check error
@@ -113,9 +113,9 @@ func findJson(root, filter string) (paths []string, err error) {
 			return nil
 		}
 
-		if err != nil {
-			err = errors.Wrapf(err, "walker called with err")
-			return err
+		if inerr != nil {
+			inerr = errors.Wrapf(inerr, "walker called with error")
+			return inerr
 		}
 
 		if strings.HasSuffix(path, ".json") {
@@ -124,7 +124,6 @@ func findJson(root, filter string) (paths []string, err error) {
 
 		return nil
 	})
-
 	err = errors.Wrapf(err, "failed to walk")
 	return
 }

@@ -18,13 +18,35 @@ const (
 	bookBkt  string = "book"
 )
 
+// Config is the bolt configuration.
+type Config struct {
+	Path string `json:"path" desc:"path to db file (inculsive)" required:"true"`
+}
+
 // Bolt represents a bbolt db.
 type Bolt struct {
 	db *bbolt.DB
 }
 
+// New creates an instance from config.
+func (cfg *Config) New() (blt *Bolt, err error) {
+
+	db, err := bbolt.Open(cfg.Path, 0644, &bbolt.Options{Timeout: time.Second})
+	if err != nil {
+		err = errors.Wrapf(err, fmt.Sprintf("failed to open db: %s", cfg.Path))
+		return
+	}
+
+	blt = &Bolt{
+		db: db,
+	}
+
+	return
+}
+
+/*
 // New creates a Bolt instance and opens its db file.
-func New(path, bucket string) (blt *Bolt, err error) {
+func New(path string) (blt *Bolt, err error) {
 
 	db, err := bbolt.Open(path, 0644, &bbolt.Options{Timeout: time.Second})
 	if err != nil {
@@ -38,6 +60,7 @@ func New(path, bucket string) (blt *Bolt, err error) {
 
 	return
 }
+*/
 
 // Close closes the db.
 func (blt *Bolt) Close() {

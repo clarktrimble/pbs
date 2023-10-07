@@ -53,6 +53,7 @@ func main() {
 	}
 
 	err = resize.AddResize(photos, cfg.ResizedPath, sizes)
+	launch.Check(ctx, lgr, err)
 
 	fmt.Printf("found %d photos\n", len(photos))
 

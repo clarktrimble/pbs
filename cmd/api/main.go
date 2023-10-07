@@ -26,6 +26,7 @@ var (
 
 type Config struct {
 	Version string         `json:"version" ignored:"true"`
+	Bolt    *bolt.Config   `json:"bolt"`
 	Server  *delish.Config `json:"server"`
 }
 
@@ -54,19 +55,19 @@ func main() {
 
 	// setup photo service layer
 
-	blt, err := bolt.New("photo.db", "photo")
+	repo, err := cfg.Bolt.New()
 	launch.Check(ctx, lgr, err)
-	defer blt.Close()
+	defer repo.Close()
 
 	photoSvc := &photosvc.PhotoSvc{
 		Server: svr,
-		Repo:   blt,
+		Repo:   repo,
 	}
 
 	// register routes
 
 	photoSvc.Register(rtr)
-	rtr.Set("GET", "/config", svr.ObjHandler("config", cfg))
+	_ = rtr.Set("GET", "/config", svr.ObjHandler("config", cfg))
 
 	// delicious!
 

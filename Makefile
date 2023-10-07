@@ -33,5 +33,5 @@ ${TARGETS}:
 	@echo ":: Building $@"
 	CGO_ENABLED=0 go build -ldflags '${LDFLAGS}' -o bin/$@ cmd/$@/main.go
 
-.PHONY:  test
+.PHONY: test resize
 
