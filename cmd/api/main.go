@@ -4,11 +4,11 @@ import (
 	"context"
 	"sync"
 	"xform/bolt"
+	"xform/chi"
 	"xform/photosvc"
 
 	"github.com/clarktrimble/delish"
 	"github.com/clarktrimble/delish/examples/api/minlog"
-	"github.com/clarktrimble/delish/examples/api/minroute"
 	"github.com/clarktrimble/delish/graceful"
 	"github.com/clarktrimble/delish/mid"
 	"github.com/clarktrimble/hondo"
@@ -43,9 +43,8 @@ func main() {
 	ctx = graceful.Initialize(ctx, &wg, 6*cfg.Server.Timeout, lgr)
 
 	// create router/handler, and server
-	// Todo: demo chi with params instead
 
-	rtr := minroute.New(lgr)
+	rtr := chi.New()
 
 	handler := mid.LogResponse(lgr, rtr)
 	handler = mid.LogRequest(lgr, hondo.Rand, handler)
@@ -73,6 +72,4 @@ func main() {
 
 	svr.Start(ctx, &wg)
 	graceful.Wait(ctx)
-
-	// Todo: service shutdown with errors or sommat?  noooooo
 }

@@ -11,10 +11,16 @@ import (
 	"go.etcd.io/bbolt"
 )
 
+// Todo: not found errors rather than failure to decode
+
+const (
+	photoBkt string = "photo"
+	bookBkt  string = "book"
+)
+
 // Bolt represents a bbolt db.
 type Bolt struct {
-	db     *bbolt.DB
-	bucket []byte
+	db *bbolt.DB
 }
 
 // New creates a Bolt instance and opens its db file.
@@ -27,26 +33,27 @@ func New(path, bucket string) (blt *Bolt, err error) {
 	}
 
 	blt = &Bolt{
-		db:     db,
-		bucket: []byte(bucket),
+		db: db,
 	}
 
 	return
 }
 
+// Close closes the db.
 func (blt *Bolt) Close() {
 
 	err := blt.db.Close()
 	if err != nil {
-		panic(err) // Todo: log??
+		fmt.Printf("error closing bolt db: %v\n", err)
 	}
 }
 
+// UpsertPhotos writes photos overwriting those with same name.
 func (blt *Bolt) UpsertPhotos(ctx context.Context, photos entity.Photos) (err error) {
 
 	err = blt.db.Update(func(tx *bbolt.Tx) error {
 
-		bkt, err := writeBucket(tx, "photo")
+		bkt, err := writeBucket(tx, photoBkt)
 		if err != nil {
 			return err
 		}
@@ -70,11 +77,12 @@ func (blt *Bolt) UpsertPhotos(ctx context.Context, photos entity.Photos) (err er
 	return
 }
 
+// GetPhotots gets all photos.
 func (blt *Bolt) GetPhotos(ctx context.Context) (photos entity.Photos, err error) {
 
 	err = blt.db.View(func(tx *bbolt.Tx) error {
 
-		bkt, err := readBucket(tx, "photo")
+		bkt, err := readBucket(tx, photoBkt)
 		if err != nil {
 			return err
 		}
@@ -98,11 +106,12 @@ func (blt *Bolt) GetPhotos(ctx context.Context) (photos entity.Photos, err error
 	return
 }
 
+// UpsertBook writes a book overwriting if same id.
 func (blt *Bolt) UpsertBook(ctx context.Context, book entity.Book) (err error) {
 
 	err = blt.db.Update(func(tx *bbolt.Tx) error {
 
-		bkt, err := writeBucket(tx, "book")
+		bkt, err := writeBucket(tx, bookBkt)
 		if err != nil {
 			return err
 		}
@@ -123,18 +132,18 @@ func (blt *Bolt) UpsertBook(ctx context.Context, book entity.Book) (err error) {
 	return
 }
 
+// GetBook gets a book.
 func (blt *Bolt) GetBook(ctx context.Context, id string) (book entity.Book, err error) {
 
 	err = blt.db.View(func(tx *bbolt.Tx) error {
 
-		bkt, err := readBucket(tx, "book")
+		bkt, err := readBucket(tx, bookBkt)
 		if err != nil {
 			return err
 		}
 
 		data := bkt.Get([]byte(id))
 		//fmt.Printf(">>>%s<<< for %s\n\n\n", data, id)
-		// Todo: not found??
 		book, err = entity.DecodeBook(data)
 		if err != nil {
 			return err

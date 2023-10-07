@@ -8,8 +8,13 @@ import (
 	"xform/entity"
 
 	"github.com/clarktrimble/delish"
+	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
 )
+
+// Todo: validation of request body(s)
+// Todo: all photos are global, need a scoping concept, i.e.: tartu Jun/Jul 23 or sommat
+// Todo: add Ok to responder
 
 // PhotoSvc represents a servcie-layer ...
 type PhotoSvc struct {
@@ -24,9 +29,8 @@ func (svc *PhotoSvc) Register(rtr Router) {
 	rtr.Set("POST", "/photos", svc.upsertPhotos)
 	rtr.Set("POST", "/book", svc.upsertBook)
 	rtr.Set("POST", "/featured", svc.setFeatured)
-	rtr.Set("GET", "/photobook", svc.getPhotoBook)
-	rtr.Set("POST", "/photobook", svc.getPhotoBook) // Todo: grrrrrr
-	//rtr.Set("POST", "/imgbook", svc.getImgBook)     // Todo: grrrrrr
+	rtr.Set("GET", "/photobook/{bookId}", svc.getPhotoBook)
+
 	return
 }
 
@@ -69,15 +73,12 @@ func (svc *PhotoSvc) upsertPhotos(writer http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	// note: photos are not validated beyond simple unmarshal
-
 	err = svc.Repo.UpsertPhotos(ctx, photos)
 	if err != nil {
 		rp.NotOk(ctx, 500, err)
 		return
 	}
 
-	// Todo: add Ok to responder
 	rp.Write(ctx, []byte(`{"status":"ok"}`))
 }
 
@@ -93,10 +94,8 @@ func (svc *PhotoSvc) upsertBook(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	// Todo: all photos featured intially
+	// Todo: all photos featured intially, or choose?
 	book.Featured = map[string]bool{}
-
-	// note: book is not validated beyond simple unmarshal
 
 	err = svc.Repo.UpsertBook(ctx, book)
 	if err != nil {
@@ -107,7 +106,7 @@ func (svc *PhotoSvc) upsertBook(writer http.ResponseWriter, request *http.Reques
 	rp.Write(ctx, []byte(`{"status":"ok"}`))
 }
 
-type photoBookRequest struct {
+type featureParam struct {
 	BookId   string `json:"book_id"`
 	PhotoId  string `json:"photo_id"`
 	Featured bool   `json:"featured"`
@@ -118,20 +117,21 @@ func (svc *PhotoSvc) setFeatured(writer http.ResponseWriter, request *http.Reque
 	writer.Header().Add("Access-Control-Allow-Origin", "*")
 	ctx, rp := svc.respond(writer, request)
 
-	pbr := photoBookRequest{}
-	err := json.NewDecoder(request.Body).Decode(&pbr)
+	param := featureParam{}
+	err := json.NewDecoder(request.Body).Decode(&param)
 	if err != nil {
 		err = errors.Wrapf(err, "failed decode")
 		rp.NotOk(ctx, 400, err)
 		return
 	}
-	book, err := svc.Repo.GetBook(ctx, pbr.BookId)
+
+	book, err := svc.Repo.GetBook(ctx, param.BookId)
 	if err != nil {
 		rp.NotOk(ctx, 400, err)
 		return
 	}
 
-	book.Featured[pbr.PhotoId] = pbr.Featured
+	book.Featured[param.PhotoId] = param.Featured
 
 	err = svc.Repo.UpsertBook(ctx, book)
 	if err != nil {
@@ -162,22 +162,12 @@ func (svc *PhotoSvc) getPhotoBook(writer http.ResponseWriter, request *http.Requ
 
 	// rustle up book and photos
 
-	pbr := photoBookRequest{}
-	err := json.NewDecoder(request.Body).Decode(&pbr)
-	if err != nil {
-		err = errors.Wrapf(err, "failed decode")
-		rp.NotOk(ctx, 400, err)
-		return
-	}
-	// Todo: validate plz prolly with decode over in nty
-	book, err := svc.Repo.GetBook(ctx, pbr.BookId)
+	bookId := chi.URLParam(request, "bookId")
+	book, err := svc.Repo.GetBook(ctx, bookId)
 	if err != nil {
 		rp.NotOk(ctx, 400, err)
 		return
 	}
-
-	// Todo: hmmm need a way to scope photos and book, something rotten here :/
-	// Todo: params for gets ??
 
 	photos, err := svc.Repo.GetPhotos(ctx)
 	if err != nil {
@@ -201,67 +191,8 @@ func (svc *PhotoSvc) getPhotoBook(writer http.ResponseWriter, request *http.Requ
 			TakenAt:  photo.TakenAt,
 			Featured: book.Featured[photo.Id],
 		})
-		//"TakenAt": "2023-07-07T19:03:16Z",
-		//"Geo": {
-		//"Lat": 54.897641699999994,
-		//"Lon": 23.9223194,
 	}
 
 	rp.WriteObjects(ctx, map[string]any{"images": images})
 	// Todo: resolve naming issues (above generally) plz
 }
-
-/*
-func (svc *PhotoSvc) getImgBook(writer http.ResponseWriter, request *http.Request) {
-
-	writer.Header().Add("Access-Control-Allow-Origin", "*")
-	ctx, rp := svc.respond(writer, request)
-
-	// rustle up book and photos
-
-	pbr := photoBookRequest{}
-	err := json.NewDecoder(request.Body).Decode(&pbr)
-	if err != nil {
-		err = errors.Wrapf(err, "failed decode")
-		rp.NotOk(ctx, 400, err)
-		return
-	}
-	// Todo: validate plz prolly with decode over in nty
-	book, err := svc.Repo.GetBook(ctx, pbr.BookId)
-	if err != nil {
-		rp.NotOk(ctx, 400, err)
-		return
-	}
-
-	// Todo: hmmm need a way to scope photos and book, something rotten here :/
-	// Todo: params for gets ??
-
-	photos, err := svc.Repo.GetPhotos(ctx)
-	if err != nil {
-		rp.NotOk(ctx, 500, err)
-		return
-	}
-
-	// and mush together
-
-	img := image{}
-	for _, photo := range photos {
-		img = image{
-			PhotoId:  photo.Id,
-			Source:   photo.Images["large"].Path,
-			Width:    photo.Images["large"].Width,
-			Height:   photo.Images["large"].Height,
-			Thumb:    photo.Images["thumb"].Path,
-			ThumbGs:  photo.Images["thumb-gs"].Path, // Todo: choose -_ ffs!
-			Lat:      photo.Geo.Lat,
-			Lon:      photo.Geo.Lon,
-			TakenAt:  photo.TakenAt,
-			Featured: book.Featured[photo.Id],
-		}
-	}
-
-	rp.WriteObjects(ctx, map[string]any{"image": img})
-	// Todo: yeah this'n is pure garbage
-	// implement url params next you scoundrel
-}
-*/
