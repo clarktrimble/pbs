@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"sync"
-	"time"
 	"xform/bolt"
 	"xform/photosvc"
 
@@ -13,6 +12,11 @@ import (
 	"github.com/clarktrimble/delish/graceful"
 	"github.com/clarktrimble/delish/mid"
 	"github.com/clarktrimble/hondo"
+	"github.com/clarktrimble/launch"
+)
+
+const (
+	cfgPrefix string = "pbapi"
 )
 
 var (
@@ -27,25 +31,19 @@ type Config struct {
 
 func main() {
 
-	// Todo: load with envconfig helper
-
-	cfg := &Config{
-		Version: version,
-		Server: &delish.Config{
-			Port:    8088,
-			Timeout: 999 * time.Minute,
-			// Todo: fix delish/graceful WithTimeout is bug!!!?
-		},
-	}
+	cfg := &Config{Version: version}
+	launch.Load(cfg, cfgPrefix)
+	// Todo: fix delish/graceful WithTimeout is bug!!!?
 
 	// create logger and initialize graceful
 
-	lgr := &minlog.MinLog{}
+	lgr := &minlog.MinLog{} // Todo: sabot for trunc
 	ctx := lgr.WithFields(context.Background(), "run_id", hondo.Rand(7))
 
 	ctx = graceful.Initialize(ctx, &wg, 6*cfg.Server.Timeout, lgr)
 
 	// create router/handler, and server
+	// Todo: demo chi with params instead
 
 	rtr := minroute.New(lgr)
 
@@ -58,9 +56,7 @@ func main() {
 	// setup photo service layer
 
 	blt, err := bolt.New("photo.db", "photo")
-	if err != nil {
-		panic(err)
-	}
+	launch.Check(ctx, lgr, err)
 	defer blt.Close()
 
 	photoSvc := &photosvc.PhotoSvc{

@@ -1,3 +1,18 @@
 
-export PBL_TAKEOUTPATH="/home/trimble/takeout01"
-export PBL_RESIZEDPATH="/home/trimble/takeout01/resized"
+TKO=travelpic/JuneJuly2023
+RZD=travelpic-resized/resized
+
+export PBL_TAKEOUTPATH="/home/trimble/$TKO"
+export PBL_RESIZEDPATH="/home/trimble/$RZD"
+export PBL_FILTER='PXL_20230[67]'
+export PBL_APICLIENT_BASEURI="http://localhost:8088"
+export PBL_DRYRUN="true"
+
+export PBAPI_SERVER_PORT=8088
+export PBAPI_SERVER_TIMEOUT="999m"
+
+
+export PBR_TAKEOUTPATH="/home/trimble/takeout01"
+export PBR_RESIZEDPATH="/home/trimble/takeout01/resized"
+export PBR_FILTER='PXL_20230[67]'
+export PBR_DRYRUN="true"

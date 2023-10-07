@@ -3,17 +3,26 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 
+	"xform/moresvc"
 	"xform/resize"
-	"xform/takeouttoo"
+	"xform/takeout"
 
+	"github.com/clarktrimble/delish/examples/api/minlog"
+	"github.com/clarktrimble/giant"
+	"github.com/clarktrimble/giant/logrt"
+	"github.com/clarktrimble/giant/statusrt"
 	"github.com/clarktrimble/launch"
 )
 
 type Config struct {
-	Version     string `json:"version" ignored:"true"`
-	TakeoutPath string `json:"takeout_path" desc:"path to takeout jpg's and json's" required:"true"`
-	ResizedPath string `json:"resized_path" desc:"path to resized png's" required:"true"`
+	Version     string        `json:"version" ignored:"true"`
+	TakeoutPath string        `json:"takeout_path" desc:"path to takeout jpg's and json's" required:"true"`
+	ResizedPath string        `json:"resized_path" desc:"path to resized png's" required:"true"`
+	Filter      string        `json:"filter_regex" desc:"regex selecting matches" required:"true"`
+	ApiClient   *giant.Config `json:"api_client"`
+	DryRun      bool          `json:"dry_run" desc:"dig up metadata, but don't post"`
 }
 
 func main() {
@@ -23,9 +32,7 @@ func main() {
 	)
 	var (
 		version string
-		//src     = "/home/trimble/takeout01"
-		//dst     = "/home/trimble/takeout01/resized"
-		sizes = resize.Sizes{
+		sizes   = resize.Sizes{
 			{Name: "large", Scale: 4},
 			{Name: "thumb", Scale: 16},
 			{Name: "thumb-gs", Scale: 16, Gs: true},
@@ -35,33 +42,34 @@ func main() {
 	cfg := &Config{Version: version}
 	launch.Load(cfg, cfgPrefix)
 
-	//photos, err := takeouttoo.Find("/home/trimble/takeout01")
-	//func FromFiles(jsonPath, resizePath string, sizes resize.Sizes) (photos entity.Photos, err error) {
+	ctx := context.Background()
+	lgr := &minlog.MinLog{}
 
-	fmt.Printf(">>> %#v\n", cfg)
-	photos, err := takeouttoo.FromFiles(cfg.TakeoutPath)
+	photos, err := takeout.FromFiles(cfg.TakeoutPath, cfg.Filter)
 	if err != nil {
-		launch.Check(context.Background(), nil, err)
+		fmt.Printf("error: %+v\n\n", err)
+		os.Exit(1)
+		// Todo: use lh Check if? logger shows
 	}
-	return
 
 	err = resize.AddResize(photos, cfg.ResizedPath, sizes)
 
 	fmt.Printf("found %d photos\n", len(photos))
-	//	fmt.Printf(">>> %#v\n", photos[0])
 
-	//tmp, err := os.MkdirTemp("/tmp", fmt.Sprintf("photos-%d-", scale))
-	//tmp, err := os.MkdirTemp("/tmp", fmt.Sprintf("photos-%d-gs-", scale))
-	//if err != nil {
-	//panic(err)
-	//}
-	//tmpDir := "no save"
-	//err = sizes.BulkResize(tmpDir, photos)
-	//if err != nil {
-	//panic(err)
-	//}
+	if cfg.DryRun {
+		fmt.Printf("%s\n", photos)
+		return
+	}
 
-	//resize.Bulk(tmp, &photos, scale)
+	fmt.Printf("posting to api\n")
 
-	fmt.Printf(">>> %#v\n", photos[0])
+	client := cfg.ApiClient.New()
+	client.Use(&statusrt.StatusRt{})
+	client.Use(&logrt.LogRt{Logger: lgr})
+
+	photoSvc := &moresvc.Svc{Client: client}
+	err = photoSvc.PostPhotos(ctx, photos)
+	if err != nil {
+		lgr.Error(ctx, "failed to post data", err)
+	}
 }

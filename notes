@@ -5,3 +5,7 @@
  1632  curl localhost:8088/photobook -d '{"book_id": "testo"}' -XGET
  1633  curl localhost:8088/featured -d '{"book_id": "testo","photo_id": "9K4oMUT", "featured":true}'
  1634  curl localhost:8088/photobook -d '{"book_id": "testo"}' -XGET
+
+## takeout wobbles
+
+Untarred in msubu /home/trimble/takeout1-3

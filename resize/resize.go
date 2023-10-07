@@ -16,6 +16,7 @@ import (
 
 // Todo: short post on mutating golang slices, may need to look back in log..
 // Todo: pull takeout from tarball!!
+// Todo: look at using multiple cores!
 
 type Size struct {
 	Name  string

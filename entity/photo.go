@@ -15,7 +15,7 @@ type Geo struct {
 }
 
 type Image struct {
-	Scale  int // Todo: size name ??
+	//Scale  int // Todo: size name ??
 	Width  int
 	Height int
 	Path   string

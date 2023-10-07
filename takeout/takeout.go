@@ -1,4 +1,4 @@
-// Package takeout soaks up from goog's takeout
+// Package takeout soaks up from goog's takeout.
 package takeout
 
 import (
@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	pth "path"
+	"path"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -17,58 +18,100 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Geo represents a location.
 type Geo struct {
 	Lat float64 `json:"latitude"`
 	Lon float64 `json:"longitude"`
 	Alt float64 `json:"altitude"`
 }
 
+// Take is when snap was snapped.
 type Taken struct {
 	Epoch string `json:"timestamp"`
 }
 
-// Photo as seen in Takeout files
+// Photo is as seen in Takeout json files.
 type Photo struct {
 	Title string `json:"title"`
 	Taken Taken  `json:"photoTakenTime"`
 	Geo   Geo    `json:"geoData"`
 }
 
-// Find photos given a root path
-func Find(root string) (photos entity.Photos, err error) {
+// FromFiles creates photos given ...
+func FromFiles(jsonPath string, filter string) (photos entity.Photos, err error) {
 
-	paths, err := findJson(root)
+	// Todo: yeah would be better to have different logics for path and name (for resize)
+
+	paths, err := findJson(jsonPath, filter)
 	if err != nil {
 		return
 	}
 
 	photos = entity.Photos{}
-	for _, path := range paths {
+	for _, pth := range paths {
 
-		var photo entity.Photo
-		photo, err = decode(pth.Join(root, pth.Dir(path)), pth.Base(path))
+		var to Photo
+		dir := path.Join(jsonPath, path.Dir(pth))
+		file := path.Base(pth)
+
+		to, err = decode(dir, file)
 		if err != nil {
 			return
 		}
 
-		if !strings.HasSuffix(photo.Path, ".jpg") {
+		var photo entity.Photo
+		photo, err = takeoutToEntity(to, dir)
+		if err != nil {
+			return
+		}
+
+		if skip(photo.Path) {
 			continue
 		}
 
-		_, err = os.Stat(photo.Path)
-		if err != nil {
-			continue
-		}
 		photos = append(photos, photo)
 	}
 
 	return
 }
 
-func findJson(root string) (paths []string, err error) {
+// unexported
+
+func skip(path string) (skip bool) {
+
+	// Todo: log rather than print herein
+
+	if !strings.HasSuffix(path, ".jpg") {
+		fmt.Printf("skipping %s\n", path)
+		skip = true
+	}
+
+	_, err := os.Stat(path)
+	if err != nil {
+		fmt.Printf("also skipping %s\n", path)
+		skip = true
+	}
+
+	return
+}
+
+func findJson(root, filter string) (paths []string, err error) {
+
+	// Todo: maybe walk is overkill here??
 
 	paths = []string{}
 	err = fs.WalkDir(os.DirFS(root), ".", func(path string, entry fs.DirEntry, err error) error {
+
+		// Todo: factor this and name/path for resize plz
+		// Todo: check error
+		re, err := regexp.Compile(filter)
+		if err != nil {
+			err = errors.Wrapf(err, "failed to compile regex")
+			return err
+		}
+		if !re.MatchString(path) {
+			return nil
+		}
 
 		if err != nil {
 			err = errors.Wrapf(err, "walker called with err")
@@ -86,20 +129,22 @@ func findJson(root string) (paths []string, err error) {
 	return
 }
 
-func decode(dir, name string) (photo entity.Photo, err error) {
+func decode(dir, name string) (to Photo, err error) {
 
-	file, err := os.Open(pth.Join(dir, name))
+	file, err := os.Open(path.Join(dir, name))
 	if err != nil {
 		err = errors.Wrapf(err, "failed to open")
 		return
 	}
+	defer file.Close()
 
-	to := &Photo{}
-	err = json.NewDecoder(file).Decode(to)
-	if err != nil {
-		err = errors.Wrapf(err, "failed to decode")
-		return
-	}
+	to = Photo{}
+	err = json.NewDecoder(file).Decode(&to)
+	err = errors.Wrapf(err, "failed to decode")
+	return
+}
+
+func takeoutToEntity(to Photo, dir string) (photo entity.Photo, err error) {
 
 	epoch, err := strconv.ParseInt(to.Taken.Epoch, 10, 64)
 	if err != nil {
@@ -109,12 +154,10 @@ func decode(dir, name string) (photo entity.Photo, err error) {
 
 	split := strings.Split(to.Title, ".")
 
-	// Todo: yeah split this out somewheres??
-
 	photo = entity.Photo{
 		Id:      hondo.Rand(7),
 		Name:    split[0],
-		Path:    pth.Join(dir, to.Title),
+		Path:    path.Join(dir, to.Title),
 		TakenAt: time.Unix(epoch, 0).UTC(),
 		Geo: entity.Geo{
 			Lat: to.Geo.Lat,
@@ -123,70 +166,5 @@ func decode(dir, name string) (photo entity.Photo, err error) {
 		},
 	}
 
-	// Todo: helper ??
-
-	fmt.Printf(">>> decoding .. %s\n", photo.Path)
-	rdr, err := os.Open(photo.Path)
-	if err != nil {
-		err = errors.Wrapf(err, "failed to open reader")
-		return
-	}
-	defer rdr.Close()
-
-	/*
-		cfg, _, err := image.DecodeConfig(rdr)
-		if err != nil {
-			err = errors.Wrapf(err, "failed to decode config")
-			return
-		}
-		photo.Width = cfg.Width
-		photo.Height = cfg.Height
-	*/
-
 	return
 }
-
-/*
-func ParseMeta(dirPath string) (photos []entity.Photo, err error) {
-
-	jsonFiles := []string{}
-	err = fs.WalkDir(os.DirFS(dirPath), ".", func(fn string, entry fs.DirEntry, err error) error {
-
-		// Todo: walk is hairball, not likely to work on subdirs yet :/
-
-		if err != nil {
-			return err
-		}
-
-		if strings.HasSuffix(fn, "json") {
-			// Todo: use ext
-			jsonFiles = append(jsonFiles, fn)
-		}
-
-		return nil
-	})
-	if err != nil {
-		err = errors.Wrapf(err, "failed to walk")
-		return
-	}
-
-	photos = []entity.Photo{}
-	for _, jsonFile := range jsonFiles {
-		photo, err := DecodeMeta(path.Join(dirPath, jsonFile))
-		if err != nil {
-			return err
-		}
-
-		err = os.Stat("/path/to/whatever")
-		if err != nil {
-			return err
-		}
-		if _, err := os.Stat("/path/to/whatever"); errors.Is(err, os.ErrNotExist) {
-			// path/to/whatever does not exist
-		}
-		fmt.Printf(">>> %#v\n", photo)
-		photos = append(photos, photo)
-	}
-	return
-}
-*/
