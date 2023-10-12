@@ -18,7 +18,7 @@ type Image struct {
 	//Scale  int // Todo: size name ??
 	Width  int
 	Height int
-	Path   string
+	Url    string
 }
 
 type Photo struct {

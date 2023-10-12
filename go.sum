@@ -10,6 +10,8 @@ github.com/clarktrimble/hondo v0.0.1 h1:idVAtPyEsTCr9wyJTznCIYcuxgQJ9WbWqHu+Wm0D
 github.com/clarktrimble/hondo v0.0.1/go.mod h1:wsp4GvBXObPbxX+kloKVPEu9rpxbSvkGhagSvUCX9Sk=
 github.com/clarktrimble/launch v0.0.0-20230621091328-47179059e4a9 h1:a8ze3UzAmrJvexdSkRfq0xhhH93aa0y3+HCaio8VcCo=
 github.com/clarktrimble/launch v0.0.0-20230621091328-47179059e4a9/go.mod h1:8zwU/bHBzG+xATZCNrowcoyJ1fa51ptzgCR6cEq7Z+c=
+github.com/clarktrimble/sabot v0.0.1 h1:r/zD15eH2yMPQT36QF73TOLZ66fLTiliSekQuw4sLfc=
+github.com/clarktrimble/sabot v0.0.1/go.mod h1:6t5oQESA01uNVkca/UGuMtHD4+u+Nf3VpmIrXiB+Asg=
 github.com/coreos/etcd v3.3.10+incompatible/go.mod h1:uF7uidLiAD3TWHmW31ZFd/JWoc32PjwdhPthX9715RE=
 github.com/coreos/go-etcd v2.0.0+incompatible/go.mod h1:Jez6KQU2B/sWsbdaef3ED8NzMklzPG4d5KIOhIy30Tk=
 github.com/coreos/go-semver v0.2.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3EedlOD2RNk=

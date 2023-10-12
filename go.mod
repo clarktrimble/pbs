@@ -8,6 +8,7 @@ require (
 	github.com/clarktrimble/giant v0.0.0-20230616152915-b1438143ceac
 	github.com/clarktrimble/hondo v0.0.1
 	github.com/clarktrimble/launch v0.0.0-20230621091328-47179059e4a9
+	github.com/clarktrimble/sabot v0.0.1
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/pkg/errors v0.9.1
 	go.etcd.io/bbolt v1.3.7

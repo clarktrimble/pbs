@@ -2,67 +2,67 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	"xform/moresvc"
 	"xform/resize"
 	"xform/takeout"
 
-	"github.com/clarktrimble/delish/examples/api/minlog"
 	"github.com/clarktrimble/giant"
 	"github.com/clarktrimble/giant/logrt"
 	"github.com/clarktrimble/giant/statusrt"
+	"github.com/clarktrimble/hondo"
 	"github.com/clarktrimble/launch"
+	"github.com/clarktrimble/sabot"
+)
+
+const (
+	cfgPrefix string = "pbl"
+)
+
+var (
+	version string
+	sizes   = resize.Sizes{
+		{Name: "large", Scale: 4},
+		{Name: "thumb", Scale: 16},
+		{Name: "thumb-gs", Scale: 16, Gs: true},
+	}
 )
 
 type Config struct {
 	Version     string        `json:"version" ignored:"true"`
+	Truncate    int           `json:"truncate" desc:"truncate log fields beyond length"`
 	TakeoutPath string        `json:"takeout_path" desc:"path to takeout jpg's and json's" required:"true"`
 	ResizedPath string        `json:"resized_path" desc:"path to resized png's" required:"true"`
 	Filter      string        `json:"filter_regex" desc:"regex selecting matches" required:"true"`
-	ApiClient   *giant.Config `json:"api_client"`
+	ApiClient   *giant.Config `json:"api_client"` // Todo: add desc for giant, etc plz
 	DryRun      bool          `json:"dry_run" desc:"dig up metadata, but don't post"`
 }
 
 func main() {
 
-	const (
-		cfgPrefix string = "pbl"
-	)
-	var (
-		version string
-		sizes   = resize.Sizes{
-			{Name: "large", Scale: 4},
-			{Name: "thumb", Scale: 16},
-			{Name: "thumb-gs", Scale: 16, Gs: true},
-		}
-	)
+	// load config and setup logger
 
 	cfg := &Config{Version: version}
 	launch.Load(cfg, cfgPrefix)
 
-	ctx := context.Background()
-	lgr := &minlog.MinLog{}
+	lgr := &sabot.Sabot{Writer: os.Stdout, MaxLen: cfg.Truncate}
+	ctx := lgr.WithFields(context.Background(), "run_id", hondo.Rand(7))
+
+	// scrounge metadata from takeout and resized images
 
 	photos, err := takeout.FromFiles(cfg.TakeoutPath, cfg.Filter)
-	if err != nil {
-		fmt.Printf("error: %+v\n\n", err)
-		os.Exit(1)
-		// Todo: use lh Check if? logger shows
-	}
-
-	err = resize.AddResize(photos, cfg.ResizedPath, sizes)
 	launch.Check(ctx, lgr, err)
 
-	fmt.Printf("found %d photos\n", len(photos))
+	err = resize.AddImages(photos, cfg.ResizedPath, sizes)
+	launch.Check(ctx, lgr, err)
 
+	lgr.Info(ctx, "posting photos", "count", len(photos))
 	if cfg.DryRun {
-		fmt.Printf("%s\n", photos)
 		return
 	}
 
-	fmt.Printf("posting to api\n")
+	// ship it!
 
 	client := cfg.ApiClient.New()
 	client.Use(&statusrt.StatusRt{})

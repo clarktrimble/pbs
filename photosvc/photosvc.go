@@ -180,11 +180,11 @@ func (svc *PhotoSvc) getPhotoBook(writer http.ResponseWriter, request *http.Requ
 	for _, photo := range photos {
 		images = append(images, image{
 			PhotoId:  photo.Id,
-			Source:   photo.Images["large"].Path,
+			Source:   photo.Images["large"].Url,
 			Width:    photo.Images["large"].Width,
 			Height:   photo.Images["large"].Height,
-			Thumb:    photo.Images["thumb"].Path,
-			ThumbGs:  photo.Images["thumb-gs"].Path, // Todo: choose -_ ffs!
+			Thumb:    photo.Images["thumb"].Url,
+			ThumbGs:  photo.Images["thumb-gs"].Url, // Todo: choose -_ ffs!
 			Lat:      photo.Geo.Lat,
 			Lon:      photo.Geo.Lon,
 			TakenAt:  photo.TakenAt,

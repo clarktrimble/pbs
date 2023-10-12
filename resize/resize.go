@@ -77,7 +77,7 @@ var (
 	suffix  = "png"
 )
 
-func AddResize(photos entity.Photos, resizePath string, sizes Sizes) (err error) {
+func AddImages(photos entity.Photos, resizePath string, sizes Sizes) (err error) {
 
 	for i, photo := range photos {
 
@@ -97,7 +97,7 @@ func AddResize(photos entity.Photos, resizePath string, sizes Sizes) (err error)
 			images[size.Name] = entity.Image{
 				Width:  wd,
 				Height: ht,
-				Path:   url, // Todo:!
+				Url:    url, // Todo:!
 			}
 		}
 
@@ -106,6 +106,8 @@ func AddResize(photos entity.Photos, resizePath string, sizes Sizes) (err error)
 
 	return
 }
+
+// unexported
 
 func getSize(imagePath string) (wd, ht int, err error) {
 

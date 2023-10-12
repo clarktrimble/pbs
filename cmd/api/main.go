@@ -2,17 +2,18 @@ package main
 
 import (
 	"context"
+	"os"
 	"sync"
 	"xform/bolt"
 	"xform/chi"
 	"xform/photosvc"
 
 	"github.com/clarktrimble/delish"
-	"github.com/clarktrimble/delish/examples/api/minlog"
 	"github.com/clarktrimble/delish/graceful"
 	"github.com/clarktrimble/delish/mid"
 	"github.com/clarktrimble/hondo"
 	"github.com/clarktrimble/launch"
+	"github.com/clarktrimble/sabot"
 )
 
 const (
@@ -25,21 +26,23 @@ var (
 )
 
 type Config struct {
-	Version string         `json:"version" ignored:"true"`
-	Bolt    *bolt.Config   `json:"bolt"`
-	Server  *delish.Config `json:"server"`
+	Version  string         `json:"version" ignored:"true"`
+	Truncate int            `json:"truncate" desc:"truncate log fields beyond length"`
+	Bolt     *bolt.Config   `json:"bolt"`
+	Server   *delish.Config `json:"server"`
 }
 
 func main() {
+
+	// load config, setup logger
 
 	cfg := &Config{Version: version}
 	launch.Load(cfg, cfgPrefix)
 	// Todo: fix delish/graceful WithTimeout is bug!!!?
 
-	// create logger and initialize graceful
-
-	lgr := &minlog.MinLog{} // Todo: sabot for trunc
+	lgr := &sabot.Sabot{Writer: os.Stdout, MaxLen: cfg.Truncate}
 	ctx := lgr.WithFields(context.Background(), "run_id", hondo.Rand(7))
+	// Todo: check that Sabot behaves w/ 0 MaxLen plz
 
 	ctx = graceful.Initialize(ctx, &wg, 6*cfg.Server.Timeout, lgr)
 
