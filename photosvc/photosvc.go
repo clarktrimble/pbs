@@ -14,7 +14,7 @@ import (
 
 // Todo: validation of request body(s)
 // Todo: all photos are global, need a scoping concept, i.e.: tartu Jun/Jul 23 or sommat
-// Todo: add Ok to responder
+// Todo: add Ok to responder lib
 // Todo: really want error from Set in router iface??
 
 // PhotoSvc represents a servcie-layer ...

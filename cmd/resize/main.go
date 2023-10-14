@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	"xform/resize"
@@ -45,23 +44,24 @@ func main() {
 	lgr := &sabot.Sabot{Writer: os.Stdout, MaxLen: cfg.Truncate}
 	ctx := lgr.WithFields(context.Background(), "run_id", hondo.Rand(7))
 
-	// Todo: Find is overkill here and only uses photo.Path which is only used here, plz refactor plz
-	//       also use Name, maybe just leave it for now??
-	//       also regex is hiding in there!!
+	// scan takeout folder
 
-	photos, err := takeout.FromFiles(cfg.TakeoutPath, cfg.Filter)
+	tos, err := takeout.ScanTakeout(cfg.TakeoutPath, cfg.Filter)
 	launch.Check(ctx, lgr, err)
 
+	photos := tos.PhotoFiles()
+
+	// and resize!
+
+	lgr.Info(ctx, "resizing photos", "count", len(photos))
 	if cfg.DryRun {
-		fmt.Printf("%s\n", photos)
+		lgr.Info(ctx, "just kidding", "dry_run", true)
 		return
 	}
-
-	fmt.Printf("found %d photos\n", len(photos))
 
 	// Todo: maybe want tmpdir??
 	//tmp, err := os.MkdirTemp("/tmp", fmt.Sprintf("photos-%d-", scale))
 
-	err = sizes.BulkResize(cfg.ResizedPath, photos)
+	err = sizes.ResizePhotos(cfg.ResizedPath, photos)
 	launch.Check(ctx, lgr, err)
 }

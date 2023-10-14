@@ -15,19 +15,23 @@ type Geo struct {
 }
 
 type Image struct {
-	//Scale  int // Todo: size name ??
-	Width  int
-	Height int
-	Url    string
+	SizeName string
+	Width    int
+	Height   int
+	Url      string // Todo: maybe url is not for here??
 }
 
 type Photo struct {
 	Id      string
 	Name    string
-	Path    string // Todo: path is not part of entity?
 	TakenAt time.Time
 	Geo     Geo
 	Images  map[string]Image
+}
+
+type PhotoFile struct {
+	Name string
+	Path string
 }
 
 func DecodePhoto(data []byte) (photo Photo, err error) {

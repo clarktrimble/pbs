@@ -15,18 +15,29 @@ import (
 )
 
 // Todo: short post on mutating golang slices, may need to look back in log..
-// Todo: pull takeout from tarball!!
-// Todo: look at using multiple cores!
+// Todo: look at pulling straight from  takeout from tarball
+// Todo: look at using multiple cores
+// Todo: unit test a bit at least ..
 
+// baseUrl = "http://tartu/photo/resized"
+// Todo: add some or all of baseUrl in api??
+
+var (
+	pngExt string = ".png"
+)
+
+// Size represents a plan to scale down an image.
 type Size struct {
 	Name  string
 	Scale int
 	Gs    bool
 }
 
+// Sizes is a multiplicity of Size.
 type Sizes []Size
 
-func (sizes Sizes) BulkResize(dst string, photos []entity.Photo) (err error) {
+// ResizePhotos resizes a slice of photos.
+func (sizes Sizes) ResizePhotos(dst string, photos []entity.PhotoFile) (err error) {
 
 	for _, photo := range photos {
 		err = sizes.Resize(dst, photo)
@@ -38,7 +49,8 @@ func (sizes Sizes) BulkResize(dst string, photos []entity.Photo) (err error) {
 	return
 }
 
-func (sizes Sizes) Resize(dst string, photo entity.Photo) (err error) {
+// Resize resizes a photo.
+func (sizes Sizes) Resize(dst string, photo entity.PhotoFile) (err error) {
 
 	img, err := imgio.Open(photo.Path)
 	if err != nil {
@@ -59,7 +71,7 @@ func (sizes Sizes) Resize(dst string, photo entity.Photo) (err error) {
 			// Todo: would save time to combo yeah?
 		}
 
-		out := path.Join(dst, fmt.Sprintf("%s-%s.png", photo.Name, size.Name))
+		out := path.Join(dst, fmt.Sprintf("%s-%s%s", photo.Name, size.Name, pngExt))
 
 		err = imgio.Save(out, sized, imgio.PNGEncoder())
 		if err != nil {
@@ -72,11 +84,7 @@ func (sizes Sizes) Resize(dst string, photo entity.Photo) (err error) {
 	return
 }
 
-var (
-	baseUrl = "http://tartu/photo/resized"
-	suffix  = "png"
-)
-
+// AddImages adds resized image data to photos.
 func AddImages(photos entity.Photos, resizePath string, sizes Sizes) (err error) {
 
 	for i, photo := range photos {
@@ -86,8 +94,8 @@ func AddImages(photos entity.Photos, resizePath string, sizes Sizes) (err error)
 
 			var wd, ht int
 
-			filename := fmt.Sprintf("%s-%s.%s", photo.Name, size.Name, suffix)
-			url := fmt.Sprintf("%s/%s", baseUrl, filename)
+			filename := fmt.Sprintf("%s-%s%s", photo.Name, size.Name, pngExt)
+			//url := fmt.Sprintf("%s/%s", baseUrl, filename)
 			path := fmt.Sprintf("%s/%s", resizePath, filename)
 			wd, ht, err = getSize(path)
 			if err != nil {
@@ -95,9 +103,10 @@ func AddImages(photos entity.Photos, resizePath string, sizes Sizes) (err error)
 			}
 
 			images[size.Name] = entity.Image{
-				Width:  wd,
-				Height: ht,
-				Url:    url, // Todo:!
+				SizeName: size.Name,
+				Width:    wd,
+				Height:   ht,
+				////Url:    url, // Todo:!
 			}
 		}
 
@@ -118,6 +127,7 @@ func getSize(imagePath string) (wd, ht int, err error) {
 	}
 	defer rdr.Close()
 
+	// note much faster than but seems to depend on imgio
 	cfg, _, err := image.DecodeConfig(rdr)
 	if err != nil {
 		err = errors.Wrapf(err, "failed to decode config")

@@ -4,16 +4,16 @@ import (
 	"context"
 	"os"
 
-	"xform/moresvc"
-	"xform/resize"
-	"xform/takeout"
-
 	"github.com/clarktrimble/giant"
 	"github.com/clarktrimble/giant/logrt"
 	"github.com/clarktrimble/giant/statusrt"
 	"github.com/clarktrimble/hondo"
 	"github.com/clarktrimble/launch"
 	"github.com/clarktrimble/sabot"
+
+	"xform/clientsvc"
+	"xform/resize"
+	"xform/takeout"
 )
 
 const (
@@ -49,26 +49,30 @@ func main() {
 	lgr := &sabot.Sabot{Writer: os.Stdout, MaxLen: cfg.Truncate}
 	ctx := lgr.WithFields(context.Background(), "run_id", hondo.Rand(7))
 
-	// scrounge metadata from takeout and resized images
+	// scan takeout and resized folders
 
-	photos, err := takeout.FromFiles(cfg.TakeoutPath, cfg.Filter)
+	tos, err := takeout.ScanTakeout(cfg.TakeoutPath, cfg.Filter)
+	launch.Check(ctx, lgr, err)
+
+	photos, err := tos.Photos()
 	launch.Check(ctx, lgr, err)
 
 	err = resize.AddImages(photos, cfg.ResizedPath, sizes)
 	launch.Check(ctx, lgr, err)
 
+	// ship it!
+
 	lgr.Info(ctx, "posting photos", "count", len(photos))
 	if cfg.DryRun {
+		lgr.Info(ctx, "just kidding", "dry_run", true)
 		return
 	}
-
-	// ship it!
 
 	client := cfg.ApiClient.New()
 	client.Use(&statusrt.StatusRt{})
 	client.Use(&logrt.LogRt{Logger: lgr})
 
-	photoSvc := &moresvc.Svc{Client: client}
+	photoSvc := &clientsvc.Svc{Client: client}
 	err = photoSvc.PostPhotos(ctx, photos)
 	if err != nil {
 		lgr.Error(ctx, "failed to post data", err)

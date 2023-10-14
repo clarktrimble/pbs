@@ -42,7 +42,6 @@ func main() {
 
 	lgr := &sabot.Sabot{Writer: os.Stdout, MaxLen: cfg.Truncate}
 	ctx := lgr.WithFields(context.Background(), "run_id", hondo.Rand(7))
-	// Todo: check that Sabot behaves w/ 0 MaxLen plz
 
 	ctx = graceful.Initialize(ctx, &wg, 6*cfg.Server.Timeout, lgr)
 
@@ -56,7 +55,7 @@ func main() {
 
 	svr := cfg.Server.New(handler, lgr)
 
-	// setup photo service layer
+	// setup service layer and register routes
 
 	repo, err := cfg.Bolt.New()
 	launch.Check(ctx, lgr, err)
@@ -66,8 +65,6 @@ func main() {
 		Server: svr,
 		Repo:   repo,
 	}
-
-	// register routes
 
 	photoSvc.Register(rtr)
 	_ = rtr.Set("GET", "/config", svr.ObjHandler("config", cfg))
