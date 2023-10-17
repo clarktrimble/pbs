@@ -1,11 +1,12 @@
+// Package photosvc is a service layer between http server and repo.
 package photosvc
 
 import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"time"
 	"xform/entity"
+	"xform/photobook"
 
 	"github.com/clarktrimble/delish"
 	"github.com/go-chi/chi/v5"
@@ -17,9 +18,9 @@ import (
 // Todo: add Ok to responder lib
 // Todo: really want error from Set in router iface??
 
-// PhotoSvc represents a servcie-layer ...
+// PhotoSvc is a service layer.
 type PhotoSvc struct {
-	Server *delish.Server
+	Logger Logger
 	Repo   Repo
 }
 
@@ -40,7 +41,7 @@ func (svc *PhotoSvc) respond(writer http.ResponseWriter, request *http.Request) 
 	ctx = request.Context()
 	rp = &delish.Respond{
 		Writer: writer,
-		Logger: svc.Server.Logger,
+		Logger: svc.Logger,
 	}
 
 	return
@@ -51,7 +52,7 @@ func (svc *PhotoSvc) getPhotos(writer http.ResponseWriter, request *http.Request
 	writer.Header().Add("Access-Control-Allow-Origin", "*")
 	ctx, rp := svc.respond(writer, request)
 
-	photos, err := svc.Repo.GetPhotos(ctx)
+	photos, err := svc.Repo.GetPhotos()
 	if err != nil {
 		rp.NotOk(ctx, 500, err)
 		return
@@ -64,15 +65,13 @@ func (svc *PhotoSvc) upsertPhotos(writer http.ResponseWriter, request *http.Requ
 
 	ctx, rp := svc.respond(writer, request)
 
-	photos := entity.Photos{}
-	err := json.NewDecoder(request.Body).Decode(&photos)
+	photos, err := entity.ReadPhotos(request.Body)
 	if err != nil {
-		err = errors.Wrapf(err, "failed decode")
 		rp.NotOk(ctx, 400, err)
 		return
 	}
 
-	err = svc.Repo.UpsertPhotos(ctx, photos)
+	err = svc.Repo.UpsertPhotos(photos)
 	if err != nil {
 		rp.NotOk(ctx, 500, err)
 		return
@@ -93,10 +92,10 @@ func (svc *PhotoSvc) upsertBook(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	// Todo: all photos featured intially, or choose?
+	// note: all photos are unfeatured initially
 	book.Featured = map[string]bool{}
 
-	err = svc.Repo.UpsertBook(ctx, book)
+	err = svc.Repo.UpsertBook(book)
 	if err != nil {
 		rp.NotOk(ctx, 500, err)
 		return
@@ -113,6 +112,9 @@ type featureParam struct {
 
 func (svc *PhotoSvc) setFeatured(writer http.ResponseWriter, request *http.Request) {
 
+	// warning!: almost certainly not safe for concurrent use
+	// should get away with it for a single user tho
+
 	writer.Header().Add("Access-Control-Allow-Origin", "*")
 	ctx, rp := svc.respond(writer, request)
 
@@ -124,7 +126,7 @@ func (svc *PhotoSvc) setFeatured(writer http.ResponseWriter, request *http.Reque
 		return
 	}
 
-	book, err := svc.Repo.GetBook(ctx, param.BookId)
+	book, err := svc.Repo.GetBook(param.BookId)
 	if err != nil {
 		rp.NotOk(ctx, 400, err)
 		return
@@ -132,26 +134,13 @@ func (svc *PhotoSvc) setFeatured(writer http.ResponseWriter, request *http.Reque
 
 	book.Featured[param.PhotoId] = param.Featured
 
-	err = svc.Repo.UpsertBook(ctx, book)
+	err = svc.Repo.UpsertBook(book)
 	if err != nil {
 		rp.NotOk(ctx, 500, err)
 		return
 	}
 
 	rp.Write(ctx, []byte(`{"status":"ok"}`))
-}
-
-type image struct {
-	PhotoId  string    `json:"photo_id"`
-	Source   string    `json:"src"`
-	Width    int       `json:"width"`
-	Height   int       `json:"height"`
-	Thumb    string    `json:"thumb"`
-	ThumbGs  string    `json:"thumb_gs"`
-	Lat      float64   `json:"lat"`
-	Lon      float64   `json:"lon"`
-	TakenAt  time.Time `json:"taken_at"`
-	Featured bool      `json:"featured"`
 }
 
 func (svc *PhotoSvc) getPhotoBook(writer http.ResponseWriter, request *http.Request) {
@@ -162,13 +151,14 @@ func (svc *PhotoSvc) getPhotoBook(writer http.ResponseWriter, request *http.Requ
 	// rustle up book and photos
 
 	bookId := chi.URLParam(request, "bookId")
-	book, err := svc.Repo.GetBook(ctx, bookId)
+
+	book, err := svc.Repo.GetBook(bookId)
 	if err != nil {
 		rp.NotOk(ctx, 400, err)
 		return
 	}
 
-	photos, err := svc.Repo.GetPhotos(ctx)
+	photos, err := svc.Repo.GetPhotos()
 	if err != nil {
 		rp.NotOk(ctx, 500, err)
 		return
@@ -176,22 +166,5 @@ func (svc *PhotoSvc) getPhotoBook(writer http.ResponseWriter, request *http.Requ
 
 	// and mush together
 
-	images := []image{}
-	for _, photo := range photos {
-		images = append(images, image{
-			PhotoId:  photo.Id,
-			Source:   photo.Images["large"].Url,
-			Width:    photo.Images["large"].Width,
-			Height:   photo.Images["large"].Height,
-			Thumb:    photo.Images["thumb"].Url,
-			ThumbGs:  photo.Images["thumb-gs"].Url, // Todo: choose -_ ffs!
-			Lat:      photo.Geo.Lat,
-			Lon:      photo.Geo.Lon,
-			TakenAt:  photo.TakenAt,
-			Featured: book.Featured[photo.Id],
-		})
-	}
-
-	rp.WriteObjects(ctx, map[string]any{"images": images})
-	// Todo: resolve naming issues (above generally) plz
+	rp.WriteObjects(ctx, map[string]any{"images": photobook.New(photos, book)})
 }

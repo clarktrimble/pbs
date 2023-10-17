@@ -62,7 +62,7 @@ func main() {
 	defer repo.Close()
 
 	photoSvc := &photosvc.PhotoSvc{
-		Server: svr,
+		Logger: lgr,
 		Repo:   repo,
 	}
 

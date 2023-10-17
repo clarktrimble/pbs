@@ -3,6 +3,7 @@ package entity
 
 import (
 	"encoding/json"
+	"io"
 	"time"
 
 	"github.com/pkg/errors"
@@ -19,11 +20,12 @@ type Image struct {
 	Width    int
 	Height   int
 	Url      string // Todo: maybe url is not for here??
+	Path     string
 }
 
 type Photo struct {
-	Id      string
-	Name    string
+	Id      string `json: "id"`
+	Name    string `json: "name"`
 	TakenAt time.Time
 	Geo     Geo
 	Images  map[string]Image
@@ -32,6 +34,15 @@ type Photo struct {
 type PhotoFile struct {
 	Name string
 	Path string
+}
+
+// ReadPhotos decodes photos given a Reader.
+func ReadPhotos(reader io.Reader) (photos Photos, err error) {
+
+	photos = Photos{}
+	err = json.NewDecoder(reader).Decode(&photos)
+	err = errors.Wrapf(err, "failed to decode photos")
+	return
 }
 
 func DecodePhoto(data []byte) (photo Photo, err error) {
