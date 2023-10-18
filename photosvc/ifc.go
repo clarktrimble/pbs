@@ -8,7 +8,7 @@ import (
 
 // Router specifies the router interface used here.
 type Router interface {
-	Set(method, path string, handler http.HandlerFunc) (err error)
+	Set(method, path string, handler http.HandlerFunc)
 }
 
 // Repo specifies the backend db interface used here.

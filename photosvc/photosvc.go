@@ -13,10 +13,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Todo: validation of request body(s)
 // Todo: all photos are global, need a scoping concept, i.e.: tartu Jun/Jul 23 or sommat
 // Todo: add Ok to responder lib
-// Todo: really want error from Set in router iface??
 
 // PhotoSvc is a service layer.
 type PhotoSvc struct {
@@ -27,11 +25,11 @@ type PhotoSvc struct {
 // Register registers routes with the router.
 func (svc *PhotoSvc) Register(rtr Router) {
 
-	_ = rtr.Set("GET", "/photos", svc.getPhotos)
-	_ = rtr.Set("POST", "/photos", svc.upsertPhotos)
-	_ = rtr.Set("POST", "/book", svc.upsertBook)
-	_ = rtr.Set("POST", "/featured", svc.setFeatured)
-	_ = rtr.Set("GET", "/photobook/{bookId}", svc.getPhotoBook)
+	rtr.Set("GET", "/photos", svc.getPhotos)
+	rtr.Set("POST", "/photos", svc.upsertPhotos)
+	rtr.Set("POST", "/book", svc.upsertBook)
+	rtr.Set("POST", "/featured", svc.setFeatured)
+	rtr.Set("GET", "/photobook/{bookId}", svc.getPhotoBook)
 }
 
 // unexported

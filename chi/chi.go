@@ -7,10 +7,6 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-//Set(method, path string, handler http.HandlerFunc) (err error)
-//Method(method, pattern string, h http.Handler)
-//MethodFunc(method, pattern string, h http.HandlerFunc)
-
 // Chi represents the wrapped chi router/mux instance.
 type Chi struct {
 	Mux *chi.Mux
@@ -25,15 +21,12 @@ func New() *Chi {
 }
 
 // Set sets a route given http method, path/pattern and a handler.
-func (chi *Chi) Set(method, path string, handler http.HandlerFunc) (err error) {
+func (chi *Chi) Set(method, path string, handler http.HandlerFunc) {
 
-	// func (mx *Mux) MethodFunc(method, pattern string, handlerFn http.HandlerFunc)
-	// func (mx *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	chi.Mux.MethodFunc(method, path, handler)
-
-	return
 }
 
+// ServeHTTP handles http requests.
 func (chi *Chi) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
 	chi.Mux.ServeHTTP(writer, request)

@@ -67,7 +67,7 @@ func main() {
 	}
 
 	photoSvc.Register(rtr)
-	_ = rtr.Set("GET", "/config", svr.ObjHandler("config", cfg))
+	rtr.Set("GET", "/config", svr.ObjHandler("config", cfg))
 
 	// delicious!
 
