@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	cfgPrefix string = "pbapi"
+	cfgPrefix string = "pb"
 )
 
 var (

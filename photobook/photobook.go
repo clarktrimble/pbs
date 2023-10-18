@@ -6,6 +6,7 @@ import (
 	"xform/entity"
 )
 
+// PbItem is a photobook item tailored for use in frontend.
 type PbItem struct {
 	PhotoId  string    `json:"photo_id"`
 	Source   string    `json:"src"`
@@ -19,14 +20,13 @@ type PbItem struct {
 	Featured bool      `json:"featured"`
 }
 
-// ahh, yeah more naming plz
+// PhotoBook is slice of photo book items.
 type PhotoBook []PbItem
 
+// New creates a photobook from photos and book.
 func New(photos entity.Photos, book entity.Book) (pb PhotoBook) {
 
-	//images := []image{}
 	pb = PhotoBook{}
-
 	for _, photo := range photos {
 		pb = append(pb, PbItem{
 			PhotoId:  photo.Id,
@@ -34,7 +34,7 @@ func New(photos entity.Photos, book entity.Book) (pb PhotoBook) {
 			Width:    photo.Images["large"].Width,
 			Height:   photo.Images["large"].Height,
 			Thumb:    photo.Images["thumb"].Path,
-			ThumbGs:  photo.Images["thumb-gs"].Path, // Todo: fix Path ffs!
+			ThumbGs:  photo.Images["thumb-gs"].Path,
 			Lat:      photo.Geo.Lat,
 			Lon:      photo.Geo.Lon,
 			TakenAt:  photo.TakenAt,

@@ -1,7 +1,6 @@
 package photosvc
 
 // note: not using "_test" pkg for access to handlers
-// Todo: beef up repo mock to check upsert calls and params
 
 import (
 	"bytes"

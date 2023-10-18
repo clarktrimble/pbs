@@ -19,9 +19,11 @@ type Image struct {
 	SizeName string
 	Width    int
 	Height   int
-	Url      string // Todo: maybe url is not for here??
 	Path     string
 }
+
+// Todo: FileName would be better than Path
+//       then let api add base url and send url to frontend
 
 type Photo struct {
 	Id      string

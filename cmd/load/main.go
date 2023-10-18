@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	cfgPrefix string = "pbl"
+	cfgPrefix string = "pb"
 )
 
 var (
@@ -34,8 +34,8 @@ type Config struct {
 	Truncate    int           `json:"truncate" desc:"truncate log fields beyond length"`
 	TakeoutPath string        `json:"takeout_path" desc:"path to takeout jpg's and json's" required:"true"`
 	ResizedPath string        `json:"resized_path" desc:"path to resized png's" required:"true"`
-	Filter      string        `json:"filter_regex" desc:"regex selecting matches" required:"true"`
-	ApiClient   *giant.Config `json:"api_client"` // Todo: add desc for giant, etc plz
+	Match       string        `json:"match_regex" desc:"regex selecting matches" required:"true"`
+	ApiClient   *giant.Config `json:"api_client"`
 	DryRun      bool          `json:"dry_run" desc:"dig up metadata, but don't post"`
 }
 
@@ -51,7 +51,7 @@ func main() {
 
 	// scan takeout and resized folders
 
-	tos, err := takeout.ScanTakeout(cfg.TakeoutPath, cfg.Filter)
+	tos, err := takeout.ScanTakeout(cfg.TakeoutPath, cfg.Match)
 	launch.Check(ctx, lgr, err)
 
 	photos, err := tos.Photos()

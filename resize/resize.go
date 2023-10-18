@@ -95,7 +95,6 @@ func AddImages(photos entity.Photos, resizePath string, sizes Sizes) (err error)
 			var wd, ht int
 
 			filename := fmt.Sprintf("%s-%s%s", photo.Name, size.Name, pngExt)
-			//url := fmt.Sprintf("%s/%s", baseUrl, filename)
 			path := fmt.Sprintf("%s/%s", resizePath, filename)
 			wd, ht, err = getSize(path)
 			if err != nil {
@@ -106,7 +105,7 @@ func AddImages(photos entity.Photos, resizePath string, sizes Sizes) (err error)
 				SizeName: size.Name,
 				Width:    wd,
 				Height:   ht,
-				////Url:    url, // Todo:!
+				Path:     filename,
 			}
 		}
 

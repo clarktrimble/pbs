@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	cfgPrefix string = "pbr" // Todo: goes in pkg?? (esp version?)
+	cfgPrefix string = "pb"
 )
 
 var (
@@ -30,7 +30,7 @@ type Config struct {
 	Truncate    int    `json:"truncate" desc:"truncate log fields beyond length"`
 	TakeoutPath string `json:"takeout_path" desc:"path to takeout jpg's and json's" required:"true"`
 	ResizedPath string `json:"resized_path" desc:"path to resized png's" required:"true"`
-	Filter      string `json:"filter_regex" desc:"regex selecting matches" required:"true"`
+	Match       string `json:"match_regex" desc:"regex selecting matches" required:"true"`
 	DryRun      bool   `json:"dry_run" desc:"dig up metadata, but don't post"`
 }
 
@@ -46,7 +46,7 @@ func main() {
 
 	// scan takeout folder
 
-	tos, err := takeout.ScanTakeout(cfg.TakeoutPath, cfg.Filter)
+	tos, err := takeout.ScanTakeout(cfg.TakeoutPath, cfg.Match)
 	launch.Check(ctx, lgr, err)
 
 	photos := tos.PhotoFiles()
@@ -59,8 +59,8 @@ func main() {
 		return
 	}
 
-	// Todo: maybe want tmpdir??
-	//tmp, err := os.MkdirTemp("/tmp", fmt.Sprintf("photos-%d-", scale))
+	// maybe want tmpdir? ala:
+	// tmp, err := os.MkdirTemp("/tmp", fmt.Sprintf("photos-%d-", scale))
 
 	err = sizes.ResizePhotos(cfg.ResizedPath, photos)
 	launch.Check(ctx, lgr, err)

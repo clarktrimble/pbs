@@ -1,10 +1,6 @@
 // Package takeout soaks up from goog's takeout.
 package takeout
 
-// Todo: test on walkable dir or ditch walk plz
-//       so look at takeout struct from gz again
-// Todo: promote loadTakeout to public and skip there
-
 import (
 	"encoding/json"
 	"io/fs"
@@ -65,8 +61,8 @@ func ScanTakeout(root, pattern string) (tos Takeouts, err error) {
 		}
 
 		if !validImage(to.ImagePath, jpgExt) {
-			// Todo: error
-			continue
+			err = errors.Errorf("cannot validate image: %s", to.ImagePath)
+			return
 		}
 
 		tos = append(tos, to)
@@ -173,7 +169,6 @@ func decodeFile(name string) (to Takeout, err error) {
 	return
 }
 
-// func takeoutToEntity(to Photo, dir string) (photo entity.Photo, err error) {
 func takeoutToEntity(to Takeout) (photo entity.Photo, err error) {
 
 	epoch, err := strconv.ParseInt(to.Taken.Epoch, 10, 64)
@@ -185,9 +180,8 @@ func takeoutToEntity(to Takeout) (photo entity.Photo, err error) {
 	split := strings.Split(to.Title, ".")
 
 	photo = entity.Photo{
-		Id:   hondo.Rand(7), // Todo: remove rand seed in hondo for testing plz
-		Name: split[0],
-		//Path:    path.Join(dir, to.Title),
+		Id:      hondo.Rand(7), // Todo: remove rand seed in hondo for testing plz
+		Name:    split[0],
 		TakenAt: time.Unix(epoch, 0).UTC(),
 		Geo: entity.Geo{
 			Lat: to.Geo.Lat,

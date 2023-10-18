@@ -11,6 +11,8 @@ github.com/clarktrimble/delish v0.0.1 h1:vxv8+0oOPfX4KT5p14blRaQo0/MQpoQXbTbdkXu
 github.com/clarktrimble/delish v0.0.1/go.mod h1:czlRAc+rC+5ng9Smf4VoM5qOI2wbo9PopKKSpup+oEY=
 github.com/clarktrimble/giant v0.0.0-20230616152915-b1438143ceac h1:S2j60/dfNtaqopOQZzh03CL3s16HeHa3r7MJ2Pl3A08=
 github.com/clarktrimble/giant v0.0.0-20230616152915-b1438143ceac/go.mod h1:phKi/a3ssm7+ZCrRqSb8pKOrEEAYCZ3uAnoq3ZBOdJQ=
+github.com/clarktrimble/giant v0.0.1 h1:S5kzQE9KcT5oeiw2nd60VFDktQnnhqoninigZMYB6Gs=
+github.com/clarktrimble/giant v0.0.1/go.mod h1:phKi/a3ssm7+ZCrRqSb8pKOrEEAYCZ3uAnoq3ZBOdJQ=
 github.com/clarktrimble/hondo v0.0.1 h1:idVAtPyEsTCr9wyJTznCIYcuxgQJ9WbWqHu+Wm0DR9c=
 github.com/clarktrimble/hondo v0.0.1/go.mod h1:wsp4GvBXObPbxX+kloKVPEu9rpxbSvkGhagSvUCX9Sk=
 github.com/clarktrimble/launch v0.0.0-20230621091328-47179059e4a9 h1:a8ze3UzAmrJvexdSkRfq0xhhH93aa0y3+HCaio8VcCo=
