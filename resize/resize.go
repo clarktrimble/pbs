@@ -14,13 +14,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Todo: short post on mutating golang slices, may need to look back in log..
-// Todo: look at pulling straight from  takeout from tarball
-// Todo: look at using multiple cores
 // Todo: unit test a bit at least ..
-
-// baseUrl = "http://tartu/photo/resized"
-// Todo: add some or all of baseUrl in api??
 
 var (
 	pngExt string = ".png"
@@ -126,7 +120,7 @@ func getSize(imagePath string) (wd, ht int, err error) {
 	}
 	defer rdr.Close()
 
-	// note much faster than but seems to depend on imgio
+	// note: much faster than imgio (but seems to depend on it)
 	cfg, _, err := image.DecodeConfig(rdr)
 	if err != nil {
 		err = errors.Wrapf(err, "failed to decode config")

@@ -6,7 +6,7 @@ require (
 	github.com/anthonynsimon/bild v0.13.0
 	github.com/clarktrimble/delish v0.0.1
 	github.com/clarktrimble/giant v0.0.1
-	github.com/clarktrimble/hondo v0.0.1
+	github.com/clarktrimble/hondo v0.0.2
 	github.com/clarktrimble/launch v0.0.0-20230621091328-47179059e4a9
 	github.com/clarktrimble/sabot v0.0.1
 	github.com/go-chi/chi/v5 v5.0.10

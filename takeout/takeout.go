@@ -180,7 +180,7 @@ func takeoutToEntity(to Takeout) (photo entity.Photo, err error) {
 	split := strings.Split(to.Title, ".")
 
 	photo = entity.Photo{
-		Id:      hondo.Rand(7), // Todo: remove rand seed in hondo for testing plz
+		Id:      hondo.Rand(7),
 		Name:    split[0],
 		TakenAt: time.Unix(epoch, 0).UTC(),
 		Geo: entity.Geo{

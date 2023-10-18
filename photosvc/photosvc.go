@@ -13,8 +13,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Todo: all photos are global, need a scoping concept, i.e.: "Baltic Travels"
-
 // PhotoSvc is a service layer.
 type PhotoSvc struct {
 	Logger Logger
