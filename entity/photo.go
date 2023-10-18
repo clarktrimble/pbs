@@ -24,8 +24,8 @@ type Image struct {
 }
 
 type Photo struct {
-	Id      string `json: "id"`
-	Name    string `json: "name"`
+	Id      string
+	Name    string
 	TakenAt time.Time
 	Geo     Geo
 	Images  map[string]Image

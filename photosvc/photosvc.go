@@ -14,7 +14,6 @@ import (
 )
 
 // Todo: all photos are global, need a scoping concept, i.e.: tartu Jun/Jul 23 or sommat
-// Todo: add Ok to responder lib
 
 // PhotoSvc is a service layer.
 type PhotoSvc struct {
@@ -75,7 +74,7 @@ func (svc *PhotoSvc) upsertPhotos(writer http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	rp.Write(ctx, []byte(`{"status":"ok"}`))
+	rp.Ok(ctx)
 }
 
 func (svc *PhotoSvc) upsertBook(writer http.ResponseWriter, request *http.Request) {
@@ -99,7 +98,7 @@ func (svc *PhotoSvc) upsertBook(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	rp.Write(ctx, []byte(`{"status":"ok"}`))
+	rp.Ok(ctx)
 }
 
 type featureParam struct {
@@ -138,7 +137,7 @@ func (svc *PhotoSvc) setFeatured(writer http.ResponseWriter, request *http.Reque
 		return
 	}
 
-	rp.Write(ctx, []byte(`{"status":"ok"}`))
+	rp.Ok(ctx)
 }
 
 func (svc *PhotoSvc) getPhotoBook(writer http.ResponseWriter, request *http.Request) {

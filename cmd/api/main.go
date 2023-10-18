@@ -38,12 +38,11 @@ func main() {
 
 	cfg := &Config{Version: version}
 	launch.Load(cfg, cfgPrefix)
-	// Todo: fix delish/graceful WithTimeout is bug!!!?
 
 	lgr := &sabot.Sabot{Writer: os.Stdout, MaxLen: cfg.Truncate}
 	ctx := lgr.WithFields(context.Background(), "run_id", hondo.Rand(7))
 
-	ctx = graceful.Initialize(ctx, &wg, 6*cfg.Server.Timeout, lgr)
+	ctx = graceful.Initialize(ctx, &wg, lgr)
 
 	// create router/handler, and server
 
