@@ -62,7 +62,6 @@ func (sizes Sizes) Resize(dst string, photo entity.PhotoFile) (err error) {
 		sized := transform.Resize(img, wd/size.Scale, ht/size.Scale, transform.CatmullRom)
 		if size.Gs {
 			sized = effect.Grayscale(sized)
-			// Todo: would save time to combo yeah?
 		}
 
 		out := path.Join(dst, fmt.Sprintf("%s-%s%s", photo.Name, size.Name, pngExt))
@@ -80,6 +79,9 @@ func (sizes Sizes) Resize(dst string, photo entity.PhotoFile) (err error) {
 
 // AddImages adds resized image data to photos.
 func AddImages(photos entity.Photos, resizePath string, sizes Sizes) (err error) {
+
+	// Todo: sizes as receiver yeah?
+	// Todo: comment on name to filename conventions somewhere plz
 
 	for i, photo := range photos {
 
