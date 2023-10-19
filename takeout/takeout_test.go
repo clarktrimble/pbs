@@ -56,6 +56,9 @@ var _ = Describe("Takeout", func() {
 			})
 		})
 
+		// nested tests below are convienient in that they can depend on the
+		// above test having completed, but might get wierd if errrors were tested above
+
 		Describe("converting takeouts to Photos", func() {
 			var (
 				photos entity.Photos

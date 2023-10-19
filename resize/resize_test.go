@@ -9,7 +9,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"xform/entity"
-	"xform/resize"
 	. "xform/resize"
 )
 
@@ -20,36 +19,27 @@ func TestResize(t *testing.T) {
 
 var _ = Describe("Resize", func() {
 
-	var (
-		sizes  Sizes
-		files  []entity.PhotoFile
-		photos entity.Photos
-		dst    string
-		err    error
-	)
-
 	Describe("resizing  photos", func() {
+		var (
+			sizes Sizes
+			files []entity.PhotoFile
+			dst   string
+			err   error
+		)
 
 		BeforeEach(func() {
-			sizes = resize.Sizes{
+			sizes = Sizes{
 				{Name: "thumb", Scale: 16},
 				{Name: "thumb-gs", Scale: 16, Gs: true},
 			}
-			dst, err = os.MkdirTemp("/tmp", "pbtest")
-			Expect(err).ToNot(HaveOccurred())
 			files = []entity.PhotoFile{
 				{
 					Name: "book",
 					Path: "../test/data/book.jpg",
 				},
 			}
-
-			photos = entity.Photos{
-				{
-					Id:   "GIehp1s",
-					Name: "book",
-				},
-			}
+			dst, err = os.MkdirTemp("/tmp", "pbtest")
+			Expect(err).ToNot(HaveOccurred())
 		})
 
 		BeforeEach(func() {
@@ -64,11 +54,27 @@ var _ = Describe("Resize", func() {
 			})
 		})
 
+		// nested test "adding resized" is convienient in that it can depend on the
+		// above test having completed, but might get wierd if errrors were tested above
 		Describe("adding resized image data to photos", func() {
-			BeforeEach(func() {
-				err = AddImages(photos, dst, sizes)
+			var (
+				photos entity.Photos
+			)
+
+			JustBeforeEach(func() {
+				err = sizes.AddImages(photos, dst)
 			})
+
 			When("all is well", func() {
+				BeforeEach(func() {
+					photos = entity.Photos{
+						{
+							Id:   "GIehp1s",
+							Name: "book",
+						},
+					}
+				})
+
 				It("should populate Images", func() {
 					Expect(err).ToNot(HaveOccurred())
 					Expect(photos[0].Images).To(Equal(map[string]entity.Image{
@@ -84,8 +90,7 @@ var _ = Describe("Resize", func() {
 							Height:   25,
 							Path:     "book-thumb-gs.png",
 						},
-					},
-					))
+					}))
 				})
 			})
 		})

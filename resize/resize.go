@@ -14,8 +14,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Todo: unit test a bit at least ..
-
 var (
 	pngExt string = ".png"
 )
@@ -78,10 +76,7 @@ func (sizes Sizes) Resize(dst string, photo entity.PhotoFile) (err error) {
 }
 
 // AddImages adds resized image data to photos.
-func AddImages(photos entity.Photos, resizePath string, sizes Sizes) (err error) {
-
-	// Todo: sizes as receiver yeah?
-	// Todo: comment on name to filename conventions somewhere plz
+func (sizes Sizes) AddImages(photos entity.Photos, resizePath string) (err error) {
 
 	for i, photo := range photos {
 

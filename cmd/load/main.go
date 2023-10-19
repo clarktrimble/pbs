@@ -57,7 +57,7 @@ func main() {
 	photos, err := tos.Photos()
 	launch.Check(ctx, lgr, err)
 
-	err = resize.AddImages(photos, cfg.ResizedPath, sizes)
+	err = sizes.AddImages(photos, cfg.ResizedPath)
 	launch.Check(ctx, lgr, err)
 
 	// ship it!
