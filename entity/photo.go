@@ -33,11 +33,6 @@ type Photo struct {
 	Images  map[string]Image
 }
 
-type PhotoFile struct {
-	Name string
-	Path string
-}
-
 // ReadPhotos decodes photos given a Reader.
 func ReadPhotos(reader io.Reader) (photos Photos, err error) {
 

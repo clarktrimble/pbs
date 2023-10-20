@@ -15,13 +15,13 @@ type Client interface {
 	SendObject(ctx context.Context, method, path string, snd, rcv any) (err error)
 }
 
-// Svc represents a http client service layer.
-type Svc struct {
+// Svc is an http client service layer.
+type ClientSvc struct {
 	Client Client
 }
 
-// PostPhotos posts photo objects.
-func (svc *Svc) PostPhotos(ctx context.Context, photos []entity.Photo) (err error) {
+// PostPhotos posts photo objects to an api.
+func (svc *ClientSvc) PostPhotos(ctx context.Context, photos []entity.Photo) (err error) {
 
 	err = svc.Client.SendObject(ctx, "POST", path, photos, nil)
 	return

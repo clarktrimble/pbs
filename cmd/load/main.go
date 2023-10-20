@@ -72,8 +72,8 @@ func main() {
 	client.Use(&statusrt.StatusRt{})
 	client.Use(&logrt.LogRt{Logger: lgr})
 
-	photoSvc := &clientsvc.Svc{Client: client}
-	err = photoSvc.PostPhotos(ctx, photos)
+	clientSvc := &clientsvc.ClientSvc{Client: client}
+	err = clientSvc.PostPhotos(ctx, photos)
 	if err != nil {
 		lgr.Error(ctx, "failed to post data", err)
 	}

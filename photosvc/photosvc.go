@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 
 	"pbs/entity"
-	"pbs/photobook"
 )
 
 // PhotoSvc is a service layer.
@@ -162,5 +161,5 @@ func (svc *PhotoSvc) getPhotoBook(writer http.ResponseWriter, request *http.Requ
 
 	// and mush together
 
-	rp.WriteObjects(ctx, map[string]any{"images": photobook.New(photos, book)})
+	rp.WriteObjects(ctx, map[string]any{"images": entity.New(photos, book)})
 }

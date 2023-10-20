@@ -6,4 +6,5 @@ junk/
 bin/
 
 photo.db*
+notes.md
 edit*json

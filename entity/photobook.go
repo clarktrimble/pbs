@@ -1,10 +1,21 @@
-// Package photobook relates to serving the photobook frontend app.
-package photobook
+// Package entity defines the entities of the project.
+package entity
 
 import (
-	"pbs/entity"
 	"time"
 )
+
+// PhotoFile tracks a photo in the fs.
+type PhotoFile struct {
+	Name string
+	Path string
+}
+
+// Book tracks which photos are featured.
+type Book struct {
+	Id       string
+	Featured map[string]bool
+}
 
 // PbItem is a photobook item tailored for use in frontend.
 type PbItem struct {
@@ -20,11 +31,11 @@ type PbItem struct {
 	Featured bool      `json:"featured"`
 }
 
-// PhotoBook is slice of photo book items.
+// PhotoBook is slice of photo book items used with photobook app.
 type PhotoBook []PbItem
 
 // New creates a photobook from photos and book.
-func New(photos entity.Photos, book entity.Book) (pb PhotoBook) {
+func New(photos Photos, book Book) (pb PhotoBook) {
 
 	pb = PhotoBook{}
 	for _, photo := range photos {
