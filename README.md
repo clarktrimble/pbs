@@ -8,23 +8,14 @@ pbs is a small project demonstrating how:
  - [github.com/clarktrimble/launch](https://github.com/clarktrimble/launch)
  - [github.com/clarktrimble/sabot](https://github.com/clarktrimble/sabot)
 
-can work together to add industrial strength to a Golang project.
+each add industrial strength to a Golang project.
 
-## pbs Components
 
 pbs consists of:
 
-### Resize
-
-A utility to resize photos from a Google Takeout tarball.
-
-### Load
-
-A utility to post metadata from a Takeout tarball and resized images to pbs api.
-
-### Api
-
-A json web api supporting a PhotoBook App.
+ - Resize, resize photos from a Google Takeout tarball
+ - Load, post metadata scraped from a Takeout tarball and resized images to pbs api
+ - Api, json web api supporting PhotoBook App
 
 ## The Missing App
 
@@ -111,7 +102,7 @@ Small, lightweight, and well constrained modules tend to break-even more often a
 The underlying approaches illustrated have some general acceptance.
 B-but, neither the well-trodden path presented nor the underlying approches illustrated are considered superior to others.
 
-One could, ever so gently, make the case that a team choosing and cohering to some set of workable paths/approaches is likely to outperform those that do not.
+One could, ever so gently, make the case that a team choosing and cohering to some set of workable paths/approaches is likely to outperform one that does not.
 In the same breath, one could also reflect on the inefficiencies of large-scale and/or orthodox proscriptions we may have had the misfortune to toil beneath.
 
 So yeah, it's about code reuse at the tactical level, which can be fun to think about and perhaps even profitable :)
