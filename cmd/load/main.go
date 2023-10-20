@@ -11,9 +11,9 @@ import (
 	"github.com/clarktrimble/launch"
 	"github.com/clarktrimble/sabot"
 
-	"xform/clientsvc"
-	"xform/resize"
-	"xform/takeout"
+	"pbs/clientsvc"
+	"pbs/resize"
+	"pbs/takeout"
 )
 
 const (

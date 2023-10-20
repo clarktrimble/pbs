@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "xform/bolt"
-	"xform/entity"
+	. "pbs/bolt"
+	"pbs/entity"
 )
 
 func TestBolt(t *testing.T) {

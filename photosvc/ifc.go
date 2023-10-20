@@ -3,7 +3,7 @@ package photosvc
 import (
 	"context"
 	"net/http"
-	"xform/entity"
+	"pbs/entity"
 )
 
 // Router specifies the router interface used here.

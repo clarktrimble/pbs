@@ -2,8 +2,8 @@
 package photobook
 
 import (
+	"pbs/entity"
 	"time"
-	"xform/entity"
 )
 
 // PbItem is a photobook item tailored for use in frontend.

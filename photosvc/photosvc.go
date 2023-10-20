@@ -5,12 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"xform/entity"
-	"xform/photobook"
 
 	"github.com/clarktrimble/delish"
 	"github.com/go-chi/chi/v5"
 	"github.com/pkg/errors"
+
+	"pbs/entity"
+	"pbs/photobook"
 )
 
 // PhotoSvc is a service layer.

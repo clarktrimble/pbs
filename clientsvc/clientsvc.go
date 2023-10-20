@@ -3,7 +3,7 @@ package clientsvc
 
 import (
 	"context"
-	"xform/entity"
+	"pbs/entity"
 )
 
 const (

@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"xform/test/mock"
+	"pbs/test/mock"
 )
 
 func TestPhotoSvc(t *testing.T) {

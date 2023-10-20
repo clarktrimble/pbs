@@ -1,4 +1,4 @@
-module xform
+module pbs
 
 go 1.20
 

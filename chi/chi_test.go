@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "xform/chi"
+	. "pbs/chi"
 )
 
 func TestChi(t *testing.T) {

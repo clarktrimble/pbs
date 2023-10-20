@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"xform/entity"
-	. "xform/takeout"
+	"pbs/entity"
+	. "pbs/takeout"
 )
 
 func TestTakeout(t *testing.T) {

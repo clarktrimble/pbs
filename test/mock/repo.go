@@ -2,7 +2,7 @@ package mock
 
 import (
 	"fmt"
-	"xform/entity"
+	"pbs/entity"
 )
 
 // hand tooled mock is a little thin for repo

@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"xform/entity"
-	. "xform/resize"
+	"pbs/entity"
+	. "pbs/resize"
 )
 
 func TestResize(t *testing.T) {
