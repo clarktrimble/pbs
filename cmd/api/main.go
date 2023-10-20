@@ -2,18 +2,22 @@ package main
 
 import (
 	"context"
+	"os"
+	"pbs/bolt"
+	"pbs/chi"
+	"pbs/photosvc"
 	"sync"
-	"time"
 
 	"github.com/clarktrimble/delish"
-	"github.com/clarktrimble/hondo"
-
 	"github.com/clarktrimble/delish/graceful"
 	"github.com/clarktrimble/delish/mid"
+	"github.com/clarktrimble/hondo"
+	"github.com/clarktrimble/launch"
+	"github.com/clarktrimble/sabot"
+)
 
-	"github.com/clarktrimble/delish/examples/api/demosvc"
-	"github.com/clarktrimble/delish/examples/api/minlog"
-	"github.com/clarktrimble/delish/examples/api/minroute"
+const (
+	cfgPrefix string = "pb"
 )
 
 var (
@@ -22,34 +26,27 @@ var (
 )
 
 type Config struct {
-	Version string         `json:"version" ignored:"true"`
-	Server  *delish.Config `json:"server"`
+	Version  string         `json:"version" ignored:"true"`
+	Truncate int            `json:"truncate" desc:"truncate log fields beyond length"`
+	Bolt     *bolt.Config   `json:"bolt"`
+	Server   *delish.Config `json:"server"`
 }
-
-// Todo: demo another goroutine
 
 func main() {
 
-	// usually load config with envconfig, but literal for demo
+	// load config, setup logger
 
-	cfg := &Config{
-		Version: version,
-		Server: &delish.Config{
-			Port:    8088,
-			Timeout: 10 * time.Second,
-		},
-	}
+	cfg := &Config{Version: version}
+	launch.Load(cfg, cfgPrefix)
 
-	// create logger and initialize graceful
-
-	lgr := &minlog.MinLog{}
+	lgr := &sabot.Sabot{Writer: os.Stdout, MaxLen: cfg.Truncate}
 	ctx := lgr.WithFields(context.Background(), "run_id", hondo.Rand(7))
 
-	ctx = graceful.Initialize(ctx, &wg, 6*cfg.Server.Timeout, lgr)
+	ctx = graceful.Initialize(ctx, &wg, lgr)
 
 	// create router/handler, and server
 
-	rtr := minroute.New(lgr)
+	rtr := chi.New()
 
 	handler := mid.LogResponse(lgr, rtr)
 	handler = mid.LogRequest(lgr, hondo.Rand, handler)
@@ -57,13 +54,19 @@ func main() {
 
 	svr := cfg.Server.New(handler, lgr)
 
-	// register route directly
+	// setup service layer and register routes
 
+	repo, err := cfg.Bolt.New()
+	launch.Check(ctx, lgr, err)
+	defer repo.Close()
+
+	photoSvc := &photosvc.PhotoSvc{
+		Logger: lgr,
+		Repo:   repo,
+	}
+
+	photoSvc.Register(rtr)
 	rtr.Set("GET", "/config", svr.ObjHandler("config", cfg))
-
-	// or via service layer
-
-	demosvc.AddRoute(svr, rtr)
 
 	// delicious!
 

@@ -1,100 +1,175 @@
-// Package takeout soaks up from goog's takeout
+// Package takeout soaks up from goog's takeout.
 package takeout
 
 import (
 	"encoding/json"
 	"io/fs"
 	"os"
-	pth "path"
+	"path"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
-	"xform/entity"
+	"pbs/entity"
 
+	"github.com/clarktrimble/hondo"
 	"github.com/pkg/errors"
 )
 
+// Geo represents a location.
 type Geo struct {
 	Lat float64 `json:"latitude"`
 	Lon float64 `json:"longitude"`
 	Alt float64 `json:"altitude"`
 }
 
+// Taken is when snap was snapped.
 type Taken struct {
 	Epoch string `json:"timestamp"`
 }
 
-type Photo struct {
-	Title string `json:"title"`
-	Taken Taken  `json:"photoTakenTime"`
-	Geo   Geo    `json:"geoData"`
+// Takeout represents a photo as seen in Takeout json files.
+type Takeout struct {
+	Title     string `json:"title"`
+	Taken     Taken  `json:"photoTakenTime"`
+	Geo       Geo    `json:"geoData"`
+	ImagePath string `json:"-"`
 }
 
-func Find(root string) (photos []entity.Photo, err error) {
+// Takeouts are a multiplicity of Takeouts.
+type Takeouts []Takeout
 
-	paths, err := findJson(root)
+// ScanTakeout scans a takeout folder for metdatums.
+func ScanTakeout(root, pattern string) (tos Takeouts, err error) {
+
+	jsonExt := ".json"
+	jpgExt := ".jpg"
+	tos = Takeouts{}
+
+	jsonFiles, err := findFiles(root, jsonExt, pattern)
 	if err != nil {
 		return
 	}
 
-	for _, path := range paths {
+	for _, jsonFile := range jsonFiles {
 
-		var photo entity.Photo
-		photo, err = decode(pth.Join(root, pth.Dir(path)), pth.Base(path))
+		var to Takeout
+		to, err = decodeFile(path.Join(root, jsonFile))
 		if err != nil {
 			return
 		}
 
-		if !strings.HasSuffix(photo.Path, ".jpg") {
-			continue
+		if !validImage(to.ImagePath, jpgExt) {
+			err = errors.Errorf("cannot validate image: %s", to.ImagePath)
+			return
 		}
 
-		_, err = os.Stat(photo.Path)
+		tos = append(tos, to)
+	}
+
+	return
+}
+
+// PhotoFiles converts Takeouts to PhotoFiles.
+func (tos Takeouts) PhotoFiles() (pfs []entity.PhotoFile) {
+
+	pfs = []entity.PhotoFile{}
+	for _, to := range tos {
+
+		pfs = append(pfs, entity.PhotoFile{
+			Name: strings.TrimSuffix(to.Title, path.Ext(to.Title)),
+			Path: to.ImagePath,
+		})
+	}
+
+	return
+}
+
+// Photos converts Takeouts to Photos.
+func (tos Takeouts) Photos() (photos entity.Photos, err error) {
+
+	photos = entity.Photos{}
+	for _, to := range tos {
+
+		var photo entity.Photo
+		photo, err = takeoutToEntity(to)
 		if err != nil {
-			continue
+			return
 		}
+
 		photos = append(photos, photo)
 	}
 
 	return
 }
 
-func findJson(root string) (paths []string, err error) {
+// unexported
+
+func validImage(pth, ext string) (valid bool) {
+
+	valid = true
+
+	_, err := os.Stat(pth)
+	if err != nil {
+		valid = false
+	}
+
+	return
+}
+
+func findFiles(root, ext, pattern string) (paths []string, err error) {
 
 	paths = []string{}
-	err = fs.WalkDir(os.DirFS(root), ".", func(path string, entry fs.DirEntry, err error) error {
 
-		if err != nil {
-			err = errors.Wrapf(err, "walker called with err")
-			return err
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		err = errors.Wrapf(err, "failed to compile regex")
+		return
+	}
+
+	err = fs.WalkDir(os.DirFS(root), ".", func(pth string, entry fs.DirEntry, inerr error) error {
+
+		//fmt.Printf(">>> walk: %s %s %#v\n", root, pth, entry)
+		if inerr != nil {
+			inerr = errors.Wrapf(inerr, "walker called with error")
+			return inerr
 		}
 
-		if strings.HasSuffix(path, ".json") {
-			paths = append(paths, path)
+		if path.Ext(pth) != ext || !re.MatchString(pth) {
+			return nil
 		}
 
+		paths = append(paths, pth)
 		return nil
 	})
-
 	err = errors.Wrapf(err, "failed to walk")
 	return
 }
 
-func decode(dir, name string) (photo entity.Photo, err error) {
+func decodeFile(name string) (to Takeout, err error) {
 
-	file, err := os.Open(pth.Join(dir, name))
+	file, err := os.Open(name)
 	if err != nil {
 		err = errors.Wrapf(err, "failed to open")
 		return
 	}
+	defer file.Close()
 
-	to := &Photo{}
-	err = json.NewDecoder(file).Decode(to)
+	to = Takeout{}
+	err = json.NewDecoder(file).Decode(&to)
+	err = errors.Wrapf(err, "failed to decode")
 	if err != nil {
 		err = errors.Wrapf(err, "failed to decode")
 		return
 	}
+
+	// takeout convention is image and json files have almost the same path
+	to.ImagePath = strings.TrimSuffix(name, path.Ext(name))
+	return
+}
+
+func takeoutToEntity(to Takeout) (photo entity.Photo, err error) {
 
 	epoch, err := strconv.ParseInt(to.Taken.Epoch, 10, 64)
 	if err != nil {
@@ -105,8 +180,8 @@ func decode(dir, name string) (photo entity.Photo, err error) {
 	split := strings.Split(to.Title, ".")
 
 	photo = entity.Photo{
+		Id:      hondo.Rand(7),
 		Name:    split[0],
-		Path:    pth.Join(dir, to.Title),
 		TakenAt: time.Unix(epoch, 0).UTC(),
 		Geo: entity.Geo{
 			Lat: to.Geo.Lat,
@@ -117,48 +192,3 @@ func decode(dir, name string) (photo entity.Photo, err error) {
 
 	return
 }
-
-/*
-func ParseMeta(dirPath string) (photos []entity.Photo, err error) {
-
-	jsonFiles := []string{}
-	err = fs.WalkDir(os.DirFS(dirPath), ".", func(fn string, entry fs.DirEntry, err error) error {
-
-		// Todo: walk is hairball, not likely to work on subdirs yet :/
-
-		if err != nil {
-			return err
-		}
-
-		if strings.HasSuffix(fn, "json") {
-			// Todo: use ext
-			jsonFiles = append(jsonFiles, fn)
-		}
-
-		return nil
-	})
-	if err != nil {
-		err = errors.Wrapf(err, "failed to walk")
-		return
-	}
-
-	photos = []entity.Photo{}
-	for _, jsonFile := range jsonFiles {
-		photo, err := DecodeMeta(path.Join(dirPath, jsonFile))
-		if err != nil {
-			return err
-		}
-
-		err = os.Stat("/path/to/whatever")
-		if err != nil {
-			return err
-		}
-		if _, err := os.Stat("/path/to/whatever"); errors.Is(err, os.ErrNotExist) {
-			// path/to/whatever does not exist
-		}
-		fmt.Printf(">>> %#v\n", photo)
-		photos = append(photos, photo)
-	}
-	return
-}
-*/
